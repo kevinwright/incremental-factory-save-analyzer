@@ -66,7 +66,7 @@ class Simulation(gameState: GameState) {
     val buildings = parcel.buildings
 
     val consumption = parcel.consumptionMap
-    val production = parcel.productionMap
+    val production = parcel.productionMapForSkills(gameState.skilltree)
 
     val netConsumption: Map[Resource, Double] =
       consumption.map { case (r, n) =>
