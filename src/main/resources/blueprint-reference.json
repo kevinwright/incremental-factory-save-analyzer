@@ -1,0 +1,729 @@
+{
+    "name": "Gen2/Blue (unoptimised)",
+    "details": [
+      {
+        "id": "parcel-46",
+        "x": -2900,
+        "y": -1580,
+        "nodeConnectionCount": 3,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 192,
+        "maxConnections": 5,
+        "parcelType": "large",
+        "maxResources": 6250,
+        "HQ": false,
+        "buildings": {
+          "oilWell": 160
+        },
+        "activeBuildings": {
+          "oilWell": 160
+        },
+        "resources": {
+          "stone": 0,
+          "steel": 0,
+          "gears": 0,
+          "gen1Chip": 0,
+          "oilBarrel": 6243.3
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "oilBarrel": {
+            "unloader": 1000
+          }
+        },
+        "name": "50 x Oil"
+      },
+      {
+        "id": "parcel-61",
+        "x": -2540,
+        "y": -1700,
+        "nodeConnectionCount": 2,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 192,
+        "maxConnections": 5,
+        "parcelType": "large",
+        "maxResources": 6250,
+        "HQ": false,
+        "buildings": {
+          "oilRefinery": 64
+        },
+        "activeBuildings": {
+          "oilRefinery": 64
+        },
+        "resources": {
+          "stone": 0,
+          "steel": 0,
+          "gears": 0,
+          "gen1Chip": 0,
+          "petroleumBarrel": 6250,
+          "oilBarrel": 6250
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "petroleumBarrel": {
+            "unloader": 1000
+          }
+        },
+        "name": "1 x Petroleum"
+      },
+      {
+        "id": "parcel-58",
+        "x": -2540,
+        "y": -1580,
+        "nodeConnectionCount": 2,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 192,
+        "maxConnections": 5,
+        "parcelType": "large",
+        "maxResources": 6250,
+        "HQ": false,
+        "buildings": {
+          "oilRefinery": 64
+        },
+        "activeBuildings": {
+          "oilRefinery": 64
+        },
+        "resources": {
+          "stone": 0,
+          "steel": 0,
+          "gears": 0,
+          "gen1Chip": 0,
+          "petroleumBarrel": 6250,
+          "oilBarrel": 6250
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "petroleumBarrel": {
+            "unloader": 1000
+          }
+        },
+        "name": "1 x Petroleum"
+      },
+      {
+        "id": "parcel-48",
+        "x": -2540,
+        "y": -1460,
+        "nodeConnectionCount": 2,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 192,
+        "maxConnections": 5,
+        "parcelType": "large",
+        "maxResources": 6250,
+        "HQ": false,
+        "buildings": {
+          "oilRefinery": 64
+        },
+        "activeBuildings": {
+          "oilRefinery": 64
+        },
+        "resources": {
+          "stone": 0,
+          "steel": 0,
+          "gears": 0,
+          "gen1Chip": 0,
+          "petroleumBarrel": 6249.33,
+          "oilBarrel": 6250
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "petroleumBarrel": {
+            "unloader": 1000
+          }
+        },
+        "name": "1 x Petroleum"
+      },
+      {
+        "id": "parcel-50",
+        "x": -2520,
+        "y": -1340,
+        "nodeConnectionCount": 1,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 192,
+        "maxConnections": 5,
+        "parcelType": "large",
+        "maxResources": 6250,
+        "HQ": false,
+        "buildings": {
+          "coalMiner": 20
+        },
+        "activeBuildings": {
+          "coalMiner": 20
+        },
+        "resources": {
+          "stone": 0,
+          "ironPlates": 0,
+          "bricks": 0,
+          "coal": 6249.67
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "coal": {
+            "unloader": 1000
+          }
+        },
+        "name": "Coal"
+      },
+      {
+        "id": "parcel-62",
+        "x": -2240,
+        "y": -1700,
+        "nodeConnectionCount": 2,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 96,
+        "maxConnections": 15,
+        "parcelType": "hitech",
+        "maxResources": 3250,
+        "HQ": false,
+        "buildings": {
+          "sulfurPlant": 32
+        },
+        "activeBuildings": {
+          "sulfurPlant": 32
+        },
+        "resources": {
+          "stone": 0,
+          "petroleumBarrel": 3250,
+          "steel": 0,
+          "gears": 0,
+          "gen1Chip": 0,
+          "sulfur": 3250
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "sulfur": {
+            "unloader": 1000
+          }
+        },
+        "name": "1 x Sulphur"
+      },
+      {
+        "id": "parcel-59",
+        "x": -2240,
+        "y": -1580,
+        "nodeConnectionCount": 2,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 96,
+        "maxConnections": 15,
+        "parcelType": "hitech",
+        "maxResources": 3250,
+        "HQ": false,
+        "buildings": {
+          "sulfurPlant": 32
+        },
+        "activeBuildings": {
+          "sulfurPlant": 32
+        },
+        "resources": {
+          "stone": 0,
+          "petroleumBarrel": 3250,
+          "steel": 0,
+          "gears": 0,
+          "gen1Chip": 0,
+          "sulfur": 3250
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "sulfur": {
+            "unloader": 1000
+          }
+        },
+        "name": "1 x Sulphur"
+      },
+      {
+        "id": "parcel-49",
+        "x": -2240,
+        "y": -1460,
+        "nodeConnectionCount": 3,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 96,
+        "maxConnections": 15,
+        "parcelType": "hitech",
+        "maxResources": 3250,
+        "HQ": false,
+        "buildings": {
+          "plasticsPlant": 64
+        },
+        "activeBuildings": {
+          "plasticsPlant": 64
+        },
+        "resources": {
+          "stone": 0,
+          "steel": 0,
+          "gears": 0,
+          "gen1Chip": 0,
+          "plastics": 3248,
+          "coal": 3250,
+          "petroleumBarrel": 3250
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "plastics": {
+            "unloader": 1000
+          }
+        },
+        "name": "3 x Plastic"
+      },
+      {
+        "id": "parcel-52",
+        "x": -2160,
+        "y": -1100,
+        "nodeConnectionCount": 3,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 96,
+        "maxConnections": 15,
+        "parcelType": "hitech",
+        "maxResources": 3250,
+        "HQ": false,
+        "buildings": {
+          "oxidationFurnace": 2
+        },
+        "activeBuildings": {
+          "oxidationFurnace": 2
+        },
+        "resources": {
+          "stone": 0,
+          "steel": 0,
+          "bricks": 0,
+          "gen1Chip": 0,
+          "siliconDioxide": 0,
+          "oxygen": 3250,
+          "silicon": 3250
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "siliconDioxide": {
+            "unloader": 1000
+          }
+        },
+        "name": "SiO2"
+      },
+      {
+        "id": "parcel-51",
+        "x": -2900,
+        "y": -1100,
+        "nodeConnectionCount": 1,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 144,
+        "maxConnections": 10,
+        "parcelType": "advanced",
+        "maxResources": 4750,
+        "HQ": false,
+        "buildings": {},
+        "activeBuildings": {},
+        "resources": {
+          "stone": 0
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "stone": {
+            "unloader": 1000
+          }
+        },
+        "name": "Stone"
+      },
+      {
+        "id": "parcel-47",
+        "x": -2460,
+        "y": -1100,
+        "nodeConnectionCount": 2,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 192,
+        "maxConnections": 5,
+        "parcelType": "large",
+        "maxResources": 6250,
+        "HQ": false,
+        "buildings": {
+          "siliconFurnace": 64,
+          "coalMiner": 17,
+          "quartzRefinery": 64
+        },
+        "activeBuildings": {
+          "siliconFurnace": 64,
+          "coalMiner": 17,
+          "quartzRefinery": 64
+        },
+        "resources": {
+          "stone": 1,
+          "steel": 0,
+          "bricks": 0,
+          "silicon": 6248,
+          "ironPlates": 0,
+          "coal": 6250,
+          "quartz": 1719
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "silicon": {
+            "unloader": 1000
+          }
+        },
+        "name": "Silicon"
+      },
+      {
+        "id": "parcel-53",
+        "x": -1820,
+        "y": -1120,
+        "nodeConnectionCount": 4,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 96,
+        "maxConnections": 15,
+        "parcelType": "hitech",
+        "maxResources": 3250,
+        "HQ": false,
+        "buildings": {
+          "gen2ChipPlant": 9
+        },
+        "activeBuildings": {
+          "gen2ChipPlant": 9
+        },
+        "resources": {
+          "stone": 0,
+          "plastics": 3250,
+          "siliconDioxide": 2,
+          "steel": 0,
+          "bricks": 0,
+          "gen1Chip": 0,
+          "gen2Chip": 0
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "gen2Chip": {
+            "unloader": 1000
+          }
+        },
+        "name": "Gen 2"
+      },
+      {
+        "id": "parcel-45",
+        "x": -2400,
+        "y": -980,
+        "nodeConnectionCount": 1,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 192,
+        "maxConnections": 5,
+        "parcelType": "large",
+        "maxResources": 6250,
+        "HQ": false,
+        "buildings": {
+          "gen2ChipPlant": 0,
+          "bioreactor": 192
+        },
+        "activeBuildings": {
+          "gen2ChipPlant": 0,
+          "bioreactor": 192
+        },
+        "resources": {
+          "stone": 0,
+          "steel": 0,
+          "bricks": 0,
+          "gen1Chip": 0,
+          "gen2Chip": 0,
+          "oxygen": 6246
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "oxygen": {
+            "unloader": 1000
+          }
+        },
+        "name": "7 x Oxy"
+      },
+      {
+        "id": "parcel-60",
+        "x": -1568.163025713045,
+        "y": -1309.8779938413782,
+        "nodeConnectionCount": 4,
+        "orientation": 0,
+        "cluster": 1,
+        "continent": 0,
+        "planet": 0,
+        "maxBuildings": 96,
+        "maxConnections": 15,
+        "parcelType": "hitech",
+        "maxResources": 3250,
+        "HQ": false,
+        "buildings": {
+          "blueScienceLab": 11
+        },
+        "activeBuildings": {
+          "blueScienceLab": 11
+        },
+        "resources": {
+          "stone": 0,
+          "gen2Chip": 4,
+          "steel": 0,
+          "bricks": 0,
+          "blueScience": 0,
+          "sulfur": 3250
+        },
+        "upgrades": {
+          "maxBuildingLimit": 1
+        },
+        "productionRateModifier": 0,
+        "consumptionRateModifier": 0,
+        "buildingProductionRateModifiers": {},
+        "buildingConsumptionRateModifiers": {},
+        "outputValues": {
+          "blueScience": {
+            "unloader": 1000
+          }
+        },
+        "name": "Blue Sci"
+      }
+    ],
+    "connections": [
+      {
+        "source": "parcel-46",
+        "sourceHandle": "oilBarrel",
+        "target": "parcel-48",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-46oilBarrel-parcel-48",
+        "selected": true
+      },
+      {
+        "source": "parcel-50",
+        "sourceHandle": "coal",
+        "target": "parcel-49",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-50coal-parcel-49",
+        "selected": true
+      },
+      {
+        "source": "parcel-48",
+        "sourceHandle": "petroleumBarrel",
+        "target": "parcel-49",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-48petroleumBarrel-parcel-49",
+        "selected": true
+      },
+      {
+        "source": "parcel-51",
+        "sourceHandle": "stone",
+        "target": "parcel-47",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-51stone-parcel-47",
+        "selected": true
+      },
+      {
+        "source": "parcel-45",
+        "sourceHandle": "oxygen",
+        "target": "parcel-52",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-45oxygen-parcel-52",
+        "selected": true
+      },
+      {
+        "source": "parcel-47",
+        "sourceHandle": "silicon",
+        "target": "parcel-52",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-47silicon-parcel-52",
+        "selected": true
+      },
+      {
+        "source": "parcel-49",
+        "sourceHandle": "plastics",
+        "target": "parcel-53",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-49plastics-parcel-53",
+        "selected": true
+      },
+      {
+        "source": "parcel-52",
+        "sourceHandle": "siliconDioxide",
+        "target": "parcel-53",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-52siliconDioxide-parcel-53",
+        "selected": true
+      },
+      {
+        "source": "parcel-53",
+        "sourceHandle": "gen2Chip",
+        "target": "parcel-54",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-53gen2Chip-parcel-54",
+        "selected": true
+      },
+      {
+        "source": "parcel-46",
+        "sourceHandle": "oilBarrel",
+        "target": "parcel-58",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-46oilBarrel-parcel-58",
+        "selected": true
+      },
+      {
+        "source": "parcel-58",
+        "sourceHandle": "petroleumBarrel",
+        "target": "parcel-59",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-58petroleumBarrel-parcel-59",
+        "selected": true
+      },
+      {
+        "source": "parcel-46",
+        "sourceHandle": "oilBarrel",
+        "target": "parcel-61",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-46oilBarrel-parcel-61",
+        "selected": true
+      },
+      {
+        "source": "parcel-60",
+        "sourceHandle": "blueScience",
+        "target": "parcel-54",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-60blueScience-parcel-54",
+        "selected": true
+      },
+      {
+        "source": "parcel-53",
+        "sourceHandle": "gen2Chip",
+        "target": "parcel-60",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-53gen2Chip-parcel-60",
+        "selected": true
+      },
+      {
+        "source": "parcel-59",
+        "sourceHandle": "sulfur",
+        "target": "parcel-60",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-59sulfur-parcel-60",
+        "selected": true
+      },
+      {
+        "source": "parcel-61",
+        "sourceHandle": "petroleumBarrel",
+        "target": "parcel-62",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-61petroleumBarrel-parcel-62",
+        "selected": true
+      },
+      {
+        "source": "parcel-62",
+        "sourceHandle": "sulfur",
+        "target": "parcel-60",
+        "targetHandle": null,
+        "id": "xyflow__edge-parcel-62sulfur-parcel-60",
+        "selected": true
+      }
+    ]
+  }

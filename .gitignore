@@ -1,0 +1,7 @@
+/.bsp/
+/.idea/
+/.metals/
+/project/target/
+/project/project/
+/target/
+/.DS_Store
