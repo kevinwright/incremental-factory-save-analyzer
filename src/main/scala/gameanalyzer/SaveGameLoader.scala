@@ -1,0 +1,5 @@
+package gameanalyzer
+
+object SaveGameLoader {
+
+}
