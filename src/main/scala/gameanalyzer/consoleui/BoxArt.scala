@@ -40,16 +40,16 @@ object BoxArt {
 
 }
 
-given boxart2char: Conversion[BoxArt, Char] with
-  def apply(ba: BoxArt): Char = ba.toChar
-
 case class BoxArt(
     top: LineStyle = NoLine,
     right: LineStyle = NoLine,
     bottom: LineStyle = NoLine,
     left: LineStyle = NoLine
 ) {
-
+  def toFansi: fansi.Str = fansi.Str(toCharStr)
+  
+  def toCharStr: String = toChar.toString
+  
   def toChar: Char = (top, right, bottom, left) match {
     // Empty
     case (NoLine, NoLine, NoLine, NoLine) => ' '

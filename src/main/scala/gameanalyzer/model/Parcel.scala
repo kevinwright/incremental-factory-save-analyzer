@@ -2,6 +2,8 @@ package gameanalyzer.model
 
 import scala.collection.immutable.ListMap
 
+import gameanalyzer.CollectionUtils.*
+
 object Parcel {
   case class Beacons(
       t1p: Int,
@@ -61,20 +63,12 @@ case class Parcel(
     t3s = buildings.getOrElse(Building.speedBeaconT2, 0)
   )
 
-  private def sumValues[K, V: Numeric](seq: Seq[(K, V)]): ListMap[K, V] = {
-    seq
-      .groupMap(_._1)(_._2)
-      .view
-      .mapValues(_.sum)
-      .to(ListMap)
-  }
-
-  def consumptionMap: ListMap[Resource, Double] = sumValues(
+  def consumptionMap: ListMap[Resource, Double] = (
     for {
-      (building, numBuildings) <- buildings.toSeq
+      (building, numBuildings) <- buildings.toSeq.filter(_._2 > 0)
       (resource, resourceQty) <- building.inputsMap.toSeq
     } yield resource -> resourceQty * numBuildings * beacons.consumptionMult
-  )
+  ).sumValues
 
   /** @param skillTree
     *   used to determine bonuses
@@ -83,16 +77,26 @@ case class Parcel(
   def productionMapForSkills(skillTree: SkillTree): ListMap[Resource, Double] =
     sumValues(
       for {
-        (building, numBuildings) <- buildings.toSeq
+        (building, numBuildings) <- buildings.toSeq.filter(_._2 > 0)
         (resource, singleBuildingOutput) <- building.outputsMap.toSeq
-        singleBonus = skillTree.specializationMultiplierFor(resource)
-        compoundSpecialisationBonus = math
-          .pow(singleBonus, numBuildings.doubleValue)
+        singleBonus = skillTree.specializationBoostFor(resource)
+        specBoostMultiplier = 1 + (singleBonus * numBuildings)
       } yield {
         val totalProd =
-          singleBuildingOutput * numBuildings * compoundSpecialisationBonus * beacons.prodMult
+          singleBuildingOutput * numBuildings * specBoostMultiplier * beacons.prodMult
         resource -> totalProd
       }
     )
 
+  def unboostedProductionMap: ListMap[Resource, Double] =
+    sumValues(
+      for {
+        (building, numBuildings) <- buildings.toSeq
+        (resource, singleBuildingOutput) <- building.outputsMap.toSeq
+      } yield {
+        val totalProd =
+          singleBuildingOutput * numBuildings
+        resource -> totalProd
+      }
+    )
 }

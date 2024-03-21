@@ -12,7 +12,7 @@ extension (j: Justification)
   def justify(
       text: fansi.Str,
       width: Int,
-      padding: Int
+      padding: Int = 1
   ): fansi.Str = {
     val space: Int = width - text.length
 

@@ -5,7 +5,7 @@ import scala.collection.immutable.ListMap
 final case class GameState(
     totalRewards: Int,
     skilltree: SkillTree,
-    viewPort: ViewPort,
+    viewPort: Option[ViewPort],
     maxParcels: Int,
     maxClusters: Int,
     taskQueueTickRate: Int,
@@ -31,10 +31,10 @@ final case class GameState(
     maxChallenges: Int,
     activeChallenges: Seq[ActiveChallenge],
     currentChallengeCards: Seq[String],
-    selectedParcelName: String,
+    selectedParcelName: Option[String],
     autoSave: Boolean,
     droneBlueprints: Seq[DroneBlueprint],
-    energyEfficiency: Int,
+    energyEfficiency: Option[Int],
     // savedProjects
     researchData: Seq[(String, Boolean)]
 ) {
@@ -44,9 +44,9 @@ final case class GameState(
       .to(ListMap)
   }
 
-  def prodMultipliers: ListMap[Resource, Double] = {
+  def prodBoosts: ListMap[Resource, Double] = {
     Resource.values
-      .map(r => r -> skilltree.specializationMultiplierFor(r))
+      .map(r => r -> skilltree.specializationBoostFor(r))
       .to(ListMap)
   }
 }

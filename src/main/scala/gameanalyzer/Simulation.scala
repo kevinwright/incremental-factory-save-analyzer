@@ -1,16 +1,19 @@
 package gameanalyzer
 
 import gameanalyzer.model.*
+import gameanalyzer.CollectionUtils.*
+import gameanalyzer.model.Resource.nullResource
 
 import scala.annotation.tailrec
 
-class Simulation(gameState: GameState) {
-
+object Simulation {
   case class CalculatedParcel(
       underlying: Parcel,
-      resourceImports: Map[Resource, Double],
-      consumption: Map[Resource, Double],
+      resourceImports: Seq[(Resource, Double)],
+      unboostedProduction: Map[Resource, Double],
       production: Map[Resource, Double],
+      consumption: Map[Resource, Double],
+      availability: Map[Resource, Double],
       deficit: Map[Resource, Double],
       excess: Map[Resource, Double]
   )
@@ -31,10 +34,33 @@ class Simulation(gameState: GameState) {
     def unresolvedParcelIds: Seq[String] =
       connections
         .map(_.targetId)
-        .filter(tid => parcels.exists(_.underlying.id == tid))
+        .filterNot(tid => parcels.exists(_.underlying.id == tid))
 
-    def starvedParcels = parcels.filter(_.deficit.nonEmpty)
+    def importsTo(
+        c: CalculatedParcel,
+        r: Resource = nullResource
+    ): Seq[CalculatedConnection] = {
+      if r == Resource.nullResource then
+        connections.filter(_.targetId == c.underlying.id)
+      else
+        connections.filter(c =>
+          c.targetId == c.underlying.id && c.resource == r
+        )
+    }
+
+    def exportsFrom(
+        c: CalculatedParcel,
+        r: Resource = nullResource
+    ): Seq[CalculatedConnection] = {
+      if r == Resource.nullResource then connections.filter(_.source == c)
+      else connections.filter(c => c.source == c && c.resource == r)
+    }
+
+    lazy val starvedParcels = parcels.filter(_.deficit.nonEmpty)
   }
+}
+class Simulation(gameState: GameState) {
+  import Simulation.*
 
   object Raw {
     val allParcels: Seq[Parcel] = gameState.parcels.parcelList
@@ -61,81 +87,119 @@ class Simulation(gameState: GameState) {
 
   private def calculateParcel(
       parcel: Parcel,
-      imports: Map[Resource, Double]
+      imports: Seq[(Resource, Double)]
   ): CalculatedParcel = {
     val buildings = parcel.buildings
 
+//    if parcel.id == "parcel-5" then {
+//      println("****************")
+//      pprint.pprintln(parcel)
+//      pprint.pprintln(imports)
+//      println("****************")
+//    }
     val consumption = parcel.consumptionMap
     val production = parcel.productionMapForSkills(gameState.skilltree)
 
-    val netConsumption: Map[Resource, Double] =
-      consumption.map { case (r, n) =>
-        val available =
-          imports.getOrElse(r, 0.0d) + production.getOrElse(r, 0.0d)
-        (r, available - n)
+    val availability: Map[Resource, Double] =
+      Resource.values.toSeq.flatMap { r =>
+        val imported = imports.sumValues.getOrElse(r, 0.0d)
+        val produced = production.getOrElse(r, 0.0d)
+        val sum = imported + produced
+        if sum > 0 then Some(r -> sum) else None
+      }.toMap
+
+    val deficit: Map[Resource, Double] =
+      consumption.flatMap { case (r, n) =>
+        val delta = availability.getOrElse(r, 0.0d) - n
+        if delta < 0 then Some(r -> delta) else None
+      }
+
+    val excess: Map[Resource, Double] =
+      availability.flatMap { case (r, n) =>
+        val delta = n - consumption.getOrElse(r, 0.0d)
+        if delta > 0 then Some(r -> delta) else None
       }
 
     CalculatedParcel(
       underlying = parcel,
       resourceImports = imports,
       consumption = consumption,
+      availability = availability,
+      unboostedProduction = parcel.unboostedProductionMap,
       production = production,
-      deficit = netConsumption.filter(_._2 < 0),
-      excess = netConsumption.filter(_._2 > 0)
+      deficit = deficit,
+      excess = excess
     )
   }
 
-  private def calculateConnections(
+  private def calculateOutboundConnections(
       parcel: CalculatedParcel
   ): Seq[CalculatedConnection] = {
-    Raw.allConnections
+    val underlying = Raw.allConnections
       .filter(_.sourceId == parcel.underlying.id)
-      .map { c =>
-        val resource = c.sourceHandle
-          .map(Resource.valueOf)
-          .getOrElse(Resource.nullResource)
 
-        val maxThroughput = gameState.skilltree.maxThroughputFor(resource)
-        val available = parcel.excess.getOrElse(resource, 0.0d)
-        CalculatedConnection(
-          underlying = c,
-          resource = resource,
-          maxThroughput = maxThroughput,
-          actualThroughput = maxThroughput min available,
-          source = parcel,
-          targetId = c.targetId
-        )
-      }
+//    underlying.filter(_.targetId == "parcel-5").foreach { c =>
+//      println("$$$$$$$$$$$$$$$$")
+//      pprint.pprintln(c)
+//      println("$$$$$$$$$$$$$$$$")
+//    }
+
+    underlying.map { c =>
+      val resource = c.sourceHandle
+        .map(Resource.valueOf)
+        .getOrElse(Resource.nullResource)
+
+      val shareCount = underlying.count(_.sourceHandle.contains(resource))
+
+      val maxThroughput = gameState.skilltree.maxThroughputFor(resource)
+      val available =
+        parcel.excess.getOrElse(resource, 0.0d) / shareCount.doubleValue
+      CalculatedConnection(
+        underlying = c,
+        resource = resource,
+        maxThroughput = maxThroughput,
+        actualThroughput = maxThroughput min available,
+        source = parcel,
+        targetId = c.targetId
+      )
+    }
   }
 
   def calculateRoots: SimulationState = {
     val calculatedParcels =
-      Raw.rootParcels.map(p => calculateParcel(p, Map.empty))
+      Raw.rootParcels.map(p => calculateParcel(p, Nil))
 
     val calculatedConnections =
-      calculatedParcels.flatMap(calculateConnections)
+      calculatedParcels.flatMap(calculateOutboundConnections)
     SimulationState(calculatedParcels, calculatedConnections)
   }
 
   @tailrec
   private def iterate(state: SimulationState): SimulationState = {
     val nextTranche =
-      Raw.allParcels.filter(p => state.unresolvedParcelIds.contains(p.id))
+      Raw.allParcels.filter(p => {
+        val rawConns = Raw.allConnections.filter(_.targetId == p.id)
+        state.unresolvedParcelIds.contains(p.id)
+        && rawConns.forall(nc => state.connections.exists(_.underlying == nc))
+      })
 
+//    println("NEXT TRANCHE")
+//    pprint.pprintln(state.connections)
+//    pprint.pprintln(state.unresolvedParcelIds)
+//    println("------------")
+//    pprint.pprintln(nextTranche)
     if (nextTranche.isEmpty) {
       state
     } else {
       val newCalculatedParcels = nextTranche.map { p =>
         val inbounds = state.connections.filter(_.targetId == p.id)
-        val imports = inbounds
-          .groupMap(_.resource)(_.actualThroughput)
-          .view
-          .mapValues(_.sum)
-          .toMap
+        val imports: Seq[(Resource, Double)] =
+          inbounds.map(cc => cc.resource -> cc.actualThroughput)
         calculateParcel(p, imports)
       }
       val newCalculatedConnections =
-        newCalculatedParcels.flatMap(calculateConnections)
+        newCalculatedParcels.flatMap(calculateOutboundConnections)
+
       iterate(
         state.copy(
           parcels = state.parcels ++ newCalculatedParcels,

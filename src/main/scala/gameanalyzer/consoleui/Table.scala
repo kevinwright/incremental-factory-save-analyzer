@@ -22,6 +22,7 @@ object Table {
   )
 
   def buildTreeTable[A](
+      title: Option[Any],
       headerRow: Seq[Any],
       roots: Seq[A],
       walkDown: A => Seq[A],
@@ -77,13 +78,14 @@ object Table {
     }
 
     val bodyRows = recurse(roots)
-    Table(headerRow, bodyRows)
+    Table(title, headerRow, bodyRows)
   }
 }
 
 import Table.*
 
 case class Table(
+    title: Option[Any],
     headerRow: Seq[Any],
     bodyRows: Seq[Seq[Any]],
     padding: Int = 1,

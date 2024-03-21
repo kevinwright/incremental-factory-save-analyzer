@@ -9,6 +9,7 @@ logLevel := Level.Info
 import scala.scalanative.build._
 
 libraryDependencies ++= Seq(
+  "com.monovore" %%% "decline" % "2.4.1",
   "com.lihaoyi" %%% "pprint" % "0.8.1",
   "com.lihaoyi" %%% "fansi" % "0.4.0",
   "org.scodec" %%% "scodec-core" % "2.2.2",

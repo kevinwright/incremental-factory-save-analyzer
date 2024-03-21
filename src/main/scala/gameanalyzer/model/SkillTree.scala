@@ -20,11 +20,11 @@ case class SkillTree(
     baseThroughput * multiplier
   }
 
-  def specializationMultiplierFor(resource: Resource): Double = {
+  def specializationBoostFor(resource: Resource): Double = {
     val pctBoost = specializationNodes
       .find(_.affectedResources.contains(resource.name))
       .flatMap(_.currentSimpleValue)
       .getOrElse(0.0d)
-    1.0d + (pctBoost / 100)
+    pctBoost / 100.0d
   }
 }
