@@ -55,8 +55,6 @@ object Simulation {
       if r == Resource.nullResource then connections.filter(_.source == c)
       else connections.filter(c => c.source == c && c.resource == r)
     }
-
-    lazy val starvedParcels = parcels.filter(_.deficit.nonEmpty)
   }
 }
 class Simulation(gameState: GameState) {
@@ -89,14 +87,6 @@ class Simulation(gameState: GameState) {
       parcel: Parcel,
       imports: Seq[(Resource, Double)]
   ): CalculatedParcel = {
-    val buildings = parcel.buildings
-
-//    if parcel.id == "parcel-5" then {
-//      println("****************")
-//      pprint.pprintln(parcel)
-//      pprint.pprintln(imports)
-//      println("****************")
-//    }
     val consumption = parcel.consumptionMap
     val production = parcel.productionMapForSkills(gameState.skilltree)
 
@@ -138,12 +128,6 @@ class Simulation(gameState: GameState) {
     val underlying = Raw.allConnections
       .filter(_.sourceId == parcel.underlying.id)
 
-//    underlying.filter(_.targetId == "parcel-5").foreach { c =>
-//      println("$$$$$$$$$$$$$$$$")
-//      pprint.pprintln(c)
-//      println("$$$$$$$$$$$$$$$$")
-//    }
-
     underlying.map { c =>
       val resource = c.sourceHandle
         .map(Resource.valueOf)
@@ -182,12 +166,7 @@ class Simulation(gameState: GameState) {
         state.unresolvedParcelIds.contains(p.id)
         && rawConns.forall(nc => state.connections.exists(_.underlying == nc))
       })
-
-//    println("NEXT TRANCHE")
-//    pprint.pprintln(state.connections)
-//    pprint.pprintln(state.unresolvedParcelIds)
-//    println("------------")
-//    pprint.pprintln(nextTranche)
+    
     if (nextTranche.isEmpty) {
       state
     } else {

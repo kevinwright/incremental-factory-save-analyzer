@@ -57,42 +57,6 @@ object ModelCodecs {
       def nullValue: SkillValuesType = ListMap.empty
     }
 
-//  given skillValuesCodec(using
-//      simpleCodec: JsonValueCodec[Map[String, Double]],
-//      mapCodec: JsonValueCodec[Map[String, Map[String, Int]]]
-//  ): JsonValueCodec[SkillTreeNodeValues] =
-//    new JsonValueCodec[SkillTreeNodeValues] {
-//      def decodeValue(
-//          in: JsonReader,
-//          default: SkillTreeNodeValues
-//      ): SkillTreeNodeValues = {
-//        val b = in.nextToken()
-//        println(s"decoding, next token = ${b}")
-//
-//        if (b == '{') {
-//          in.rollbackToken()
-//          SkillTreeNodeValues.Compound(mapCodec.decodeValue(in, Map.empty))
-//        } else {
-//          in.rollbackToken()
-//          SkillTreeNodeValues.Simple(simpleCodec.decodeValue(in, Map.empty))
-//        }
-//      }
-//
-//      def encodeValue(x: SkillTreeNodeValues, out: JsonWriter): Unit =
-//        x match {
-//          case s: SkillTreeNodeValues.Simple =>
-//            simpleCodec.encodeValue(s.map, out)
-//          case c: SkillTreeNodeValues.Compound =>
-//            mapCodec.encodeValue(c.map, out)
-//          case e: SkillTreeNodeValues.Empty.type =>
-//            mapCodec.encodeValue(Map.empty, out)
-//        }
-//
-//      def nullValue: SkillTreeNodeValues = SkillTreeNodeValues.Empty
-//    }
-
-//  given skillValuesCodec: JsonValueCodec[SkillTreeNodeValues] =
-//    JsonCodecMaker.makeWithoutDiscriminator
   given gameStateRootCodec: JsonValueCodec[GameStateRoot] = JsonCodecMaker.make
 
 }
