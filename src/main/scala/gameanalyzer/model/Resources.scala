@@ -10,6 +10,8 @@ import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
 object Resource {
+  def ordered: Seq[Resource] = Resource.values.sortBy(_.ordinal())
+
   given codec: JsonValueCodec[Resource] =
     JsonCodecMaker.makeWithoutDiscriminator
 }

@@ -12,13 +12,20 @@ object Buildings {
   def ordered: Seq[Building] = Building.values.sortBy(_.ordinal())
 
   def allBuiltUsing(resource: Resource): Seq[Building] =
-    ordered.filter(_.cost.map(_.resource).contains(resource))
+    ordered
+      .filter(
+        _.cost
+          .filter(_.qty > 0)
+          .map(_.resource)
+          .contains(resource)
+      )
+      .distinct
 
   def allProducing(resource: Resource): Seq[Building] =
-    ordered.filter(_.outputs.map(_.resource).contains(resource))
+    ordered.filter(_.outputs.map(_.resource).contains(resource)).distinct
 
   def allConsuming(resource: Resource): Seq[Building] =
-    ordered.filter(_.inputs.map(_.resource).contains(resource))
+    ordered.filter(_.inputs.map(_.resource).contains(resource)).distinct
 }
 
 enum Building(

@@ -2,6 +2,7 @@ package gameanalyzer.wiki
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import sttp.client4.*
+import sttp.model.Uri
 import sttp.model.MediaType
 import sttp.model.headers.CookieWithMeta
 
@@ -10,6 +11,11 @@ import scala.util.{Failure, Success, Try}
 val backend = DefaultSyncBackend()
 val restEndpoint = uri"https://incrementalfactory.wiki.gg/rest.php/v1"
 val apiEndpoint = uri"https://incrementalfactory.wiki.gg/api.php"
+
+extension (uri: Uri) {
+  def /(part: String): Uri =
+    uri.addPath(part)
+}
 
 def fromJsonAs[A: JsonValueCodec]: ResponseAs[Try[A]] =
   asByteArray.map {
@@ -29,9 +35,7 @@ class MediaWikiApi private (
 ) {
   def getPage(title: String): Try[WikiPage] =
     requestor
-      .get(
-        restEndpoint.addPath("page", title)
-      )
+      .get(restEndpoint / "page" / title)
       .response(fromJsonAs[WikiPage])
       .send(backend)
       .body
@@ -39,9 +43,7 @@ class MediaWikiApi private (
   def createPage(content: WikiPage): Try[WikiPage] =
     requestor
       .body(writeToString(content))
-      .post(
-        restEndpoint.addPath("page")
-      )
+      .post(restEndpoint / "page")
       .response(fromJsonAs[WikiPage])
       .send(backend)
       .body
@@ -49,9 +51,7 @@ class MediaWikiApi private (
   def updatePage(content: WikiPage): Try[WikiPage] =
     requestor
       .body(writeToString(content))
-      .put(
-        restEndpoint.addPath("page", content.title)
-      )
+      .put(restEndpoint / "page" / content.title)
       .response(fromJsonAs[WikiPage])
       .send(backend)
       .body
@@ -61,7 +61,7 @@ class MediaWikiApi private (
       case Success(existing) =>
         val updatedContent = existing.copy(
           source = newContent,
-          comment = Some("Created by a bot"),
+          comment = Some("Updated by a bot"),
           token = Some(tokens.csrftoken)
         )
         updatePage(updatedContent)
@@ -71,7 +71,7 @@ class MediaWikiApi private (
             title = title,
             content_model = "wikitext",
             source = newContent,
-            comment = Some("created by a bot"),
+            comment = Some("Updated by a bot"),
             token = Some(tokens.csrftoken)
           )
         )

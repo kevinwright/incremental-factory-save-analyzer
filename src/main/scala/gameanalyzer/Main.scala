@@ -11,7 +11,16 @@ import gameanalyzer.model.{
 }
 import cats.implicits.*
 import gameanalyzer.Simulation.SimulationState
-import gameanalyzer.wiki.{WikiTables, MediaWikiApi, WikiCredentials, WikiPage}
+import gameanalyzer.model.Resource
+import gameanalyzer.model.Resource.steel
+import gameanalyzer.wiki.{
+  MediaWikiApi,
+  PageContentMaker,
+  WikiCredentials,
+  WikiPage,
+  WikiTables
+}
+import cats.implicits.*
 
 import java.time.LocalDateTime
 import scala.util.{Failure, Success}
@@ -43,11 +52,26 @@ object Main {
         title = "autogen_main_page",
         newContent = mainPageWikiMarkup()
       )
+      _ <- Resource.ordered
+        .filterNot(_ == Resource.nullResource)
+        .traverse(r =>
+          println(s"Uploading page for ${r.displayName}")
+          api.upsertPage(
+            title = r.name(),
+            newContent = PageContentMaker.resourcePage(r)
+          )
+        )
+//      _ <- api.upsertPage(
+//        title = "steel",
+//        newContent = PageContentMaker.resourcePage(steel)
+//      )
     } yield ()
 
     val _ = wikiOps.get
 
     val gameState = gsr.gameState
+
+    println(PageContentMaker.resourcePage(Resource.steel))
 
     val summaries = Summaries(gameState)
     if args.summaryFlags.buildings then
