@@ -1,7 +1,7 @@
-package gameanalyzer.wikigen
+package gameanalyzer.wiki
 
-import gameanalyzer.model.{Building, CountedResource, Resource}
-import sttp.client4._
+import gameanalyzer.model.{Building, CountedResource, ParcelType, Resource}
+import sttp.client4.*
 
 extension (r: Resource) {
   def wikiIconLink(size: Int): String =
@@ -31,11 +31,12 @@ object WikiTables {
       .mkString(s"$startMarkup$headerMarkup|-\n", "|-\n", "|}\n")
   }
 
-  def itemsTable(): String = {
+  def itemsTable: String = {
     mkTable(
       Seq("Item", "Category", "Order", "Unlocks<br>With"),
       Seq("left", "left", "right", "left"),
       Resource.values
+        .filterNot(_ == Resource.nullResource)
         .sortBy(_.ordinal)
         .map(r =>
           Seq(
@@ -48,11 +49,12 @@ object WikiTables {
     )
   }
 
-  def buildingsTable(): String = {
+  def buildingsTable: String = {
     mkTable(
       Seq("Building", "Output", "Category", "Energy", "Unlocks<br>With"),
       Seq("left", "left", "left", "right", "left"),
       Building.values
+        .filterNot(_ == Building.testBuilding)
         .sortBy(b => (b.techTier.ordinal, b.ordinal))
         .map(b =>
           Seq(
@@ -65,5 +67,32 @@ object WikiTables {
           )
         )
     )
+  }
+
+  def parcelTypesTable: String = {
+    val preamble =
+      """
+          |{| class="sortable wikitable" style="border: none; background: none;"
+          |! style="border: none; background: none;" |
+          |! style="text-align: centre;" colspan=3 | Base
+          ||-
+          |! style="text-align: left;" | Name
+          |! style="text-align: centre;" | Connections
+          |! style="text-align: centre;" | Buildings
+          |! style="text-align: centre;" | Storage
+          |""".stripMargin
+
+    val rows = ParcelType.values.map { pt =>
+      s"""
+          ||-
+          || style="text-align: left;" | ${pt.name()}
+          || style="text-align: right;" | ${pt.baseLimits.connections}
+          || style="text-align: right;" | ${pt.baseLimits.buildings}
+          || style="text-align: right;" | ${pt.baseLimits.storage}
+          |""".stripMargin
+    }
+
+    val endTable = "|}\n"
+    rows.mkString(preamble, "", endTable)
   }
 }

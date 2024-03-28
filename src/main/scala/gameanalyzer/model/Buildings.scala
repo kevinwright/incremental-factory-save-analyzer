@@ -8,6 +8,19 @@ import Resource.*
 import BuildingCategory.*
 import TechTier.*
 
+object Buildings {
+  def ordered: Seq[Building] = Building.values.sortBy(_.ordinal())
+
+  def allBuiltUsing(resource: Resource): Seq[Building] =
+    ordered.filter(_.cost.map(_.resource).contains(resource))
+
+  def allProducing(resource: Resource): Seq[Building] =
+    ordered.filter(_.outputs.map(_.resource).contains(resource))
+
+  def allConsuming(resource: Resource): Seq[Building] =
+    ordered.filter(_.inputs.map(_.resource).contains(resource))
+}
+
 enum Building(
     val displayName: String,
     val category: BuildingCategory,

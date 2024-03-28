@@ -114,7 +114,6 @@ case class Table(
           (headerSizes +: bodyRowSizes).transpose.map(_.max)
 
         val result = headerRow.zip(colSizes).map(ColMeta(_, _))
-//        pprint.pprintln(result)
         result
     }
   }
