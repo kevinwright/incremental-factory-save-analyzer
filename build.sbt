@@ -13,6 +13,7 @@ libraryDependencies ++= Seq(
   "com.lihaoyi" %%% "pprint" % "0.8.1",
   "com.lihaoyi" %%% "fansi" % "0.4.0",
   "org.scodec" %%% "scodec-core" % "2.2.2",
+  "com.softwaremill.sttp.client4" %%% "core" % "4.0.0-M11",
   "com.github.plokhotnyuk.jsoniter-scala" %%% "jsoniter-scala-core" % "2.28.4",
   "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.28.4" % "provided"
 )

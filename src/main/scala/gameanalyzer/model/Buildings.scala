@@ -6,10 +6,12 @@ enum BuildingCategory {
 
 import Resource.*
 import BuildingCategory.*
+import TechTier.*
 
 enum Building(
     val displayName: String,
     val category: BuildingCategory,
+    val techTier: TechTier,
     val cost: Set[CountedResource],
     val inputs: Set[CountedResource],
     val outputs: Set[CountedResource],
@@ -17,6 +19,11 @@ enum Building(
     val minable: Boolean,
     val description: String
 ) extends Enum[Building] {
+
+  def mainOutput: CountedResource = outputs.headOption match {
+    case Some(cr) => cr
+    case None     => Resource.nullResource * 0
+  }
 
   def inputsMap: Map[Resource, Double] =
     inputs.map(cr => cr.resource -> cr.qty).toMap
@@ -28,6 +35,7 @@ enum Building(
       extends Building(
         displayName = "Test Building",
         category = Basics,
+        techTier = Foundation,
         cost = Set(stone * 0),
         inputs = Set.empty,
         outputs = Set(
@@ -88,6 +96,7 @@ enum Building(
       extends Building(
         displayName = "Kiln",
         category = Basics,
+        techTier = Foundation,
         cost = Set(stone * 10),
         inputs = Set(stone * 2, coal * 0.2),
         outputs = Set(bricks * 1),
@@ -99,6 +108,7 @@ enum Building(
       extends Building(
         displayName = "Iron Smelter",
         category = Basics,
+        techTier = Foundation,
         cost = Set(bricks * 10),
         inputs = Set(ironOre * 2, coal * 0.2),
         outputs = Set(ironPlates * 1),
@@ -110,6 +120,7 @@ enum Building(
       extends Building(
         displayName = "Coal Power Plant",
         category = Energy,
+        techTier = Foundation,
         cost = Set(ironPlates * 15, bricks * 15),
         inputs = Set(coal * 0.5),
         outputs = Set(coalAsh * 0.1),
@@ -121,6 +132,7 @@ enum Building(
       extends Building(
         displayName = "Coal Miner",
         category = Basics,
+        techTier = Foundation,
         cost = Set(ironPlates * 10, bricks * 10),
         inputs = Set.empty,
         outputs = Set(coal * 1),
@@ -132,6 +144,7 @@ enum Building(
       extends Building(
         displayName = "Iron Miner",
         category = Basics,
+        techTier = Foundation,
         cost = Set(ironPlates * 10, bricks * 10),
         inputs = Set.empty,
         outputs = Set(ironOre * 1),
@@ -143,6 +156,7 @@ enum Building(
       extends Building(
         displayName = "Stone Miner",
         category = Basics,
+        techTier = Foundation,
         cost = Set(ironPlates * 10, bricks * 10),
         inputs = Set.empty,
         outputs = Set(stone * 1),
@@ -154,6 +168,7 @@ enum Building(
       extends Building(
         displayName = "Copper Miner",
         category = Basics,
+        techTier = Foundation,
         cost = Set(ironPlates * 10, bricks * 10),
         inputs = Set.empty,
         outputs = Set(copperOre * 1),
@@ -165,6 +180,7 @@ enum Building(
       extends Building(
         displayName = "Copper Smelter",
         category = Basics,
+        techTier = Foundation,
         cost = Set(bricks * 15),
         inputs = Set(copperOre * 2, coal * 0.2),
         outputs = Set(copperPlates * 1),
@@ -176,6 +192,7 @@ enum Building(
       extends Building(
         displayName = "Gear Press",
         category = Intermediates,
+        techTier = Foundation,
         cost = Set(ironPlates * 30, bricks * 25),
         inputs = Set(ironPlates * 1),
         outputs = Set(gears * 0.5),
@@ -187,6 +204,7 @@ enum Building(
       extends Building(
         displayName = "Cable Extruder",
         category = Intermediates,
+        techTier = Foundation,
         cost = Set(gears * 20, bricks * 30),
         inputs = Set(copperPlates * 1),
         outputs = Set(copperCables * 2),
@@ -198,6 +216,7 @@ enum Building(
       extends Building(
         displayName = "Research Center",
         category = `Progress & Expansion`,
+        techTier = Foundation,
         cost = Set(gears * 35, bricks * 50, copperCables * 50),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -235,6 +254,7 @@ enum Building(
       extends Building(
         displayName = "Steel Mill",
         category = Basics,
+        techTier = Steel,
         cost = Set(ironPlates * 100, bricks * 400),
         inputs = Set(ironPlates * 5),
         outputs = Set(steel * 1),
@@ -242,10 +262,12 @@ enum Building(
         minable = false,
         description = ""
       )
+
   case oilWell
       extends Building(
         displayName = "Oil Well",
         category = Basics,
+        techTier = Gen1,
         cost = Set(steel * 250, gears * 250, gen1Chip * 75),
         inputs = Set.empty,
         outputs = Set(oilBarrel * 1),
@@ -257,6 +279,7 @@ enum Building(
       extends Building(
         displayName = "Oil Refinery",
         category = Basics,
+        techTier = Gen1,
         cost = Set(steel * 250, gears * 250, gen1Chip * 75),
         inputs = Set(oilBarrel * 10),
         outputs = Set(petroleumBarrel * 1),
@@ -268,6 +291,7 @@ enum Building(
       extends Building(
         displayName = "Plastics Plant",
         category = Intermediates,
+        techTier = Gen1,
         cost = Set(steel * 500, gears * 500, gen1Chip * 200),
         inputs = Set(petroleumBarrel * 1, coal * 0.5),
         outputs = Set(plastics * 3),
@@ -279,6 +303,7 @@ enum Building(
       extends Building(
         displayName = "Sulfur Plant",
         category = Intermediates,
+        techTier = Gen1,
         cost = Set(steel * 500, gears * 500, gen1Chip * 200),
         inputs = Set(petroleumBarrel * 1),
         outputs = Set(sulfur * 2),
@@ -290,6 +315,7 @@ enum Building(
       extends Building(
         displayName = "Construction Hub",
         category = `Progress & Expansion`,
+        techTier = Gen1,
         cost = Set(gears * 250, gen1Chip * 100),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -302,6 +328,7 @@ enum Building(
       extends Building(
         displayName = "Speed Beacon T1",
         category = Beacons,
+        techTier = Gen2,
         cost = Set(steel * 100, gen2Chip * 100),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -313,6 +340,7 @@ enum Building(
       extends Building(
         displayName = "Productivity Beacon T1",
         category = Beacons,
+        techTier = Gen2,
         cost = Set(steel * 100, gen2Chip * 100),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -324,6 +352,7 @@ enum Building(
       extends Building(
         displayName = "Speed Beacon T2",
         category = Beacons,
+        techTier = Gen3,
         cost = Set(steel * 350, gen3Chip * 350),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -335,6 +364,7 @@ enum Building(
       extends Building(
         displayName = "Productivity Beacon T2",
         category = Beacons,
+        techTier = Gen3,
         cost = Set(steel * 350, gen3Chip * 350),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -346,6 +376,7 @@ enum Building(
       extends Building(
         displayName = "Speed Beacon T3",
         category = Beacons,
+        techTier = Gen4,
         cost = Set(steel * 1000, gen4Chip * 1000),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -357,6 +388,7 @@ enum Building(
       extends Building(
         displayName = "Productivity Beacon T3",
         category = Beacons,
+        techTier = Gen4,
         cost = Set(steel * 1000, gen4Chip * 1000),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -469,6 +501,7 @@ enum Building(
       extends Building(
         displayName = "Red Science Laboratory",
         category = `Progress & Expansion`,
+        techTier = Foundation,
         cost = Set(gears * 50, bricks * 50),
         inputs = Set(copperCables * 5, gears * 2),
         outputs = Set(redScience * 1),
@@ -480,6 +513,7 @@ enum Building(
       extends Building(
         displayName = "Green Science Laboratory",
         category = `Progress & Expansion`,
+        techTier = Gen1,
         cost = Set(gen1Chip * 80, steel * 180, bricks * 160),
         inputs = Set(copperCables * 12, gen1Chip * 4),
         outputs = Set(greenScience * 1),
@@ -502,6 +536,7 @@ enum Building(
       extends Building(
         displayName = "Blue Science Laboratory",
         category = `Progress & Expansion`,
+        techTier = Gen2,
         cost = Set(gen2Chip * 250, steel * 250, bricks * 250),
         inputs = Set(sulfur * 8, gen2Chip * 4),
         outputs = Set(blueScience * 1),
@@ -513,6 +548,7 @@ enum Building(
       extends Building(
         displayName = "Purple Science Laboratory",
         category = `Progress & Expansion`,
+        techTier = Gen3,
         cost = Set(gen3Chip * 250, steel * 250, bricks * 250),
         inputs = Set(steel * 3, gen3Chip * 2, gen1Chip * 4),
         outputs = Set(purpleScience * 1),
@@ -524,6 +560,7 @@ enum Building(
       extends Building(
         displayName = "Yellow Science Laboratory",
         category = `Progress & Expansion`,
+        techTier = Gen4,
         cost = Set(gen4Chip * 250, steel * 250, bricks * 250),
         inputs = Set(gen4Chip * 2, gen2Chip * 4),
         outputs = Set(yellowScience * 1),
@@ -531,33 +568,36 @@ enum Building(
         minable = false,
         description = ""
       )
-  case batteryFactory
-      extends Building(
-        displayName = "Battery Factory",
-        category = Intermediates,
-        cost = Set(steel * 500, bricks * 500, gen1Chip * 500),
-        inputs = Set(ironPlates * 1, copperPlates * 1, sulfur * 1),
-        outputs = Set(battery * 1),
-        netEnergy = -6,
-        minable = false,
-        description = ""
-      )
-  case solarBatteryArray
-      extends Building(
-        displayName = "Solar & Battery Array",
-        category = Energy,
-        cost =
-          Set(steel * 100, copperCables * 100, gen1Chip * 50, battery * 50),
-        inputs = Set.empty,
-        outputs = Set.empty,
-        netEnergy = 16,
-        minable = false,
-        description = "Produces 16 energy."
-      )
+//  case batteryFactory
+//      extends Building(
+//        displayName = "Battery Factory",
+//        category = Intermediates,
+//        techTier = Gen1,
+//        cost = Set(steel * 500, bricks * 500, gen1Chip * 500),
+//        inputs = Set(ironPlates * 1, copperPlates * 1, sulfur * 1),
+//        outputs = Set(battery * 1),
+//        netEnergy = -6,
+//        minable = false,
+//        description = ""
+//      )
+//  case solarBatteryArray
+//      extends Building(
+//        displayName = "Solar & Battery Array",
+//        category = Energy,
+//        techTier = Gen1,
+//        cost =
+//          Set(steel * 100, copperCables * 100, gen1Chip * 50, battery * 50),
+//        inputs = Set.empty,
+//        outputs = Set.empty,
+//        netEnergy = 16,
+//        minable = false,
+//        description = "Produces 16 energy."
+//      )
   case fuelProcessingFacility
       extends Building(
         displayName = "Fuel Processing Facility",
         category = Intermediates,
+        techTier = Gen5,
         cost = Set(steel * 5000, bricks * 5000, gen5Chip * 500),
         inputs = Set(petroleumBarrel * 10, coal * 10),
         outputs = Set(fuelCell * 1),
@@ -569,6 +609,7 @@ enum Building(
       extends Building(
         displayName = "LDS Factory",
         category = Intermediates,
+        techTier = Gen5,
         cost = Set(steel * 5000, bricks * 5000, gen5Chip * 500),
         inputs = Set(copperPlates * 20, plastics * 5, steel * 2),
         outputs = Set(lightDensityStructures * 1),
@@ -580,6 +621,7 @@ enum Building(
       extends Building(
         displayName = "Rocket Control Unit Factory",
         category = Intermediates,
+        techTier = Gen5,
         cost = Set(steel * 5000, bricks * 5000, gen5Chip * 500),
         inputs = Set(
           gen5Chip * 1,
@@ -597,6 +639,7 @@ enum Building(
       extends Building(
         displayName = "Rocket Launch Pad",
         category = `Progress & Expansion`,
+        techTier = Gen5,
         cost = Set(steel * 5000, bricks * 5000, gen5Chip * 500),
         inputs = Set(satelite * 1, rocketParts * 100),
         outputs = Set(whiteScience * 1000),
@@ -608,6 +651,7 @@ enum Building(
       extends Building(
         displayName = "Rocket Part Assembly",
         category = Intermediates,
+        techTier = Gen5,
         cost = Set(steel * 5000, bricks * 5000, gen5Chip * 500),
         inputs =
           Set(fuelCell * 4, lightDensityStructures * 4, rocketControlUnit * 4),
@@ -620,6 +664,7 @@ enum Building(
       extends Building(
         displayName = "Satellite Assembly",
         category = Intermediates,
+        techTier = Gen5,
         cost = Set(steel * 5000, bricks * 5000, gen5Chip * 500),
         inputs = Set(
           copperPlates * 300,
@@ -638,6 +683,7 @@ enum Building(
       extends Building(
         displayName = "Production Challenge Plant",
         category = `Progress & Expansion`,
+        techTier = Gen1,
         cost = Set(steel * 1000, bricks * 250),
         inputs = Set.empty,
         outputs = Set.empty,
@@ -649,6 +695,7 @@ enum Building(
       extends Building(
         displayName = "Quartz Refinery",
         category = Intermediates,
+        techTier = Steel,
         cost = Set(steel * 150, bricks * 250),
         inputs = Set(stone * 3),
         outputs = Set(quartz * 1),
@@ -660,6 +707,7 @@ enum Building(
       extends Building(
         displayName = "Silicon Furnace",
         category = Intermediates,
+        techTier = Steel,
         cost = Set(steel * 150, bricks * 250),
         inputs = Set(quartz * 1, coal * 0.25),
         outputs = Set(silicon * 1),
@@ -671,6 +719,7 @@ enum Building(
       extends Building(
         displayName = "Bauxite Miner",
         category = Intermediates,
+        techTier = Steel,
         cost = Set(steel * 150, bricks * 250),
         inputs = Set.empty,
         outputs = Set(bauxiteOre * 10),
@@ -682,6 +731,7 @@ enum Building(
       extends Building(
         displayName = "Aluminium Smelter",
         category = Intermediates,
+        techTier = Steel,
         cost = Set(steel * 250, bricks * 150),
         inputs = Set(bauxiteOre * 5, coal * 1),
         outputs = Set(aluminium * 0.5),
@@ -693,6 +743,7 @@ enum Building(
       extends Building(
         displayName = "Gen 1 Chip Plant",
         category = Intermediates,
+        techTier = Steel,
         cost = Set(steel * 350, bricks * 350),
         inputs = Set(silicon * 2, copperCables * 3, aluminium * 0.5),
         outputs = Set(gen1Chip * 1),
@@ -704,6 +755,7 @@ enum Building(
       extends Building(
         displayName = "Bioreactor",
         category = Intermediates,
+        techTier = Gen1,
         cost = Set(
           steel * 150,
           bricks * 150,
@@ -719,6 +771,7 @@ enum Building(
       extends Building(
         displayName = "Oxidation Furnace",
         category = Intermediates,
+        techTier = Gen1,
         cost = Set(steel * 1000, bricks * 1000, gen1Chip * 500),
         inputs = Set(silicon * 1, oxygen * 2),
         outputs = Set(siliconDioxide * 1),
@@ -730,6 +783,7 @@ enum Building(
       extends Building(
         displayName = "Gen 2 Chip Plant",
         category = Intermediates,
+        techTier = Gen1,
         cost = Set(steel * 500, bricks * 500, gen1Chip * 500),
         inputs = Set(siliconDioxide * 1, plastics * 1),
         outputs = Set(gen2Chip * 1),
@@ -741,6 +795,7 @@ enum Building(
       extends Building(
         displayName = "Phenolic Resin Plant",
         category = Intermediates,
+        techTier = Gen1,
         cost = Set(steel * 1000, bricks * 1000, gen1Chip * 500),
         inputs = Set(petroleumBarrel * 1, coal * 4, coalAsh * 2),
         outputs = Set(phenolicResin * 1),
@@ -752,6 +807,7 @@ enum Building(
       extends Building(
         displayName = "Low Deposition Chamber",
         category = Intermediates,
+        techTier = Gen2,
         cost = Set(steel * 1000, bricks * 1000, gen2Chip * 1000),
         inputs = Set(silicon * 1, oxygen * 1),
         outputs = Set(lowkDielectric * 1),
@@ -763,6 +819,7 @@ enum Building(
       extends Building(
         displayName = "Germanium Refinery",
         category = Intermediates,
+        techTier = Gen2,
         cost = Set(steel * 500, bricks * 500, gen2Chip * 250),
         inputs = Set(coalAsh * 0.6),
         outputs = Set(germanium * 0.1),
@@ -774,6 +831,7 @@ enum Building(
       extends Building(
         displayName = "SiGe Furnace",
         category = Intermediates,
+        techTier = Gen2,
         cost = Set(steel * 500, bricks * 500, gen2Chip * 250),
         inputs = Set(silicon * 1, germanium * 1),
         outputs = Set(siliconGermanium * 1),
@@ -785,6 +843,7 @@ enum Building(
       extends Building(
         displayName = "High-Grade Smelter",
         category = Intermediates,
+        techTier = Gen2,
         cost = Set(steel * 1500, bricks * 1500, gen2Chip * 500),
         // inputs = Set(hgCopperOre: 1 ),
         inputs = Set(copperOre * 20, coal * 4),
@@ -797,6 +856,7 @@ enum Building(
       extends Building(
         displayName = "Gen 3 Chip Plant",
         category = Intermediates,
+        techTier = Gen2,
         cost = Set(steel * 1500, bricks * 1500, gen2Chip * 1000),
         inputs = Set(
           lowkDielectric * 1,
@@ -813,6 +873,7 @@ enum Building(
       extends Building(
         displayName = "Hafnium Mine",
         category = Intermediates,
+        techTier = Gen3,
         cost = Set(steel * 500, bricks * 500, gen3Chip * 150),
         inputs = Set.empty,
         outputs = Set(hafnium * 0.1),
@@ -824,6 +885,7 @@ enum Building(
       extends Building(
         displayName = "Advanced Deposition Chamber",
         category = Intermediates,
+        techTier = Gen3,
         cost = Set(steel * 2500, bricks * 2500, gen3Chip * 1000),
         inputs = Set(hafnium * 1, siliconDioxide * 1, silicon * 2),
         outputs = Set(highkDielectric * 1),
@@ -835,6 +897,7 @@ enum Building(
       extends Building(
         displayName = "Metal Gate Plant",
         category = Intermediates,
+        techTier = Gen3,
         cost = Set(steel * 2500, bricks * 2500, gen3Chip * 1000),
         inputs = Set(hafnium * 2, silicon * 4),
         outputs = Set(metalGate * 1),
@@ -846,6 +909,7 @@ enum Building(
       extends Building(
         displayName = "Gen 4 Chip Plant",
         category = Intermediates,
+        techTier = Gen3,
         cost = Set(steel * 2500, bricks * 2500, gen3Chip * 1000),
         inputs = Set(
           siliconGermanium * 1,
@@ -862,6 +926,7 @@ enum Building(
       extends Building(
         displayName = "Graphene Lab",
         category = Intermediates,
+        techTier = Gen4,
         cost = Set(steel * 5000, bricks * 5000, gen4Chip * 800),
         inputs = Set(silicon * 1, coal * 1, coalAsh * 0.1),
         outputs = Set(graphene * 1),
@@ -873,6 +938,7 @@ enum Building(
       extends Building(
         displayName = "Hafnium-Disulfide Plant",
         category = Intermediates,
+        techTier = Gen4,
         cost = Set(steel * 5000, bricks * 5000, gen4Chip * 800),
         inputs = Set(hafnium * 1, sulfur * 2),
         outputs = Set(hafniumDisulfide * 1),
@@ -884,6 +950,7 @@ enum Building(
       extends Building(
         displayName = "Nanowire Lab",
         category = Intermediates,
+        techTier = Gen4,
         cost = Set(steel * 5000, bricks * 5000, gen4Chip * 800),
         inputs = Set(hafnium * 1, siliconGermanium * 1, oxygen * 1),
         outputs = Set(nanowires * 1),
@@ -895,6 +962,7 @@ enum Building(
       extends Building(
         displayName = "AP-Material Lab",
         category = Intermediates,
+        techTier = Gen4,
         cost = Set(steel * 5000, bricks * 5000, gen4Chip * 800),
         inputs = Set(hgCopperPlate * 1, phenolicResin * 1, quartz * 1),
         outputs = Set(apMaterial * 1),
@@ -906,6 +974,7 @@ enum Building(
       extends Building(
         displayName = "Gen 5 Chip Plant",
         category = Intermediates,
+        techTier = Gen4,
         cost = Set(steel * 150, bricks * 150),
         inputs = Set(
           graphene * 3,
@@ -922,6 +991,7 @@ enum Building(
       extends Building(
         displayName = "Drone Factory",
         category = Intermediates,
+        techTier = Gen2,
         cost = Set(steel * 150, bricks * 150),
         inputs = Set(gen2Chip * 1, gen1Chip * 1, gears * 2, copperCables * 8),
         outputs = Set(drone * 1),
@@ -933,6 +1003,7 @@ enum Building(
       extends Building(
         displayName = "Drone Port",
         category = `Progress & Expansion`,
+        techTier = Gen2,
         cost = Set(steel * 1500, bricks * 1500, drone * 100),
         inputs = Set.empty,
         outputs = Set.empty,

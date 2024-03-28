@@ -4,7 +4,7 @@ import scala.collection.immutable.ListMap
 
 import gameanalyzer.CollectionUtils.*
 
-object Parcel {
+object ParcelInstance {
   case class Beacons(
       t1p: Int,
       t1s: Int,
@@ -27,7 +27,7 @@ object Parcel {
         math.pow(1.08, t3s)
   }
 }
-case class Parcel(
+case class ParcelInstance(
     id: String,
     x: Double,
     y: Double,
@@ -38,7 +38,7 @@ case class Parcel(
     planet: Int,
     maxBuildings: Int,
     maxConnections: Int,
-    parcelType: String,
+    parcelType: ParcelType,
     maxResources: Double,
     HQ: Boolean,
     buildings: Map[Building, Int],
@@ -54,7 +54,7 @@ case class Parcel(
 ) {
   def displayName: String = name.getOrElse(id)
 
-  lazy val beacons: Parcel.Beacons = Parcel.Beacons(
+  lazy val beacons: ParcelInstance.Beacons = ParcelInstance.Beacons(
     t1p = buildings.getOrElse(Building.productivityBeaconT1, 0),
     t1s = buildings.getOrElse(Building.speedBeaconT1, 0),
     t2p = buildings.getOrElse(Building.productivityBeaconT2, 0),

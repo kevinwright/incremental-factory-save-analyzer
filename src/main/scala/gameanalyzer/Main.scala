@@ -7,11 +7,17 @@ import gameanalyzer.model.{
   Building,
   GameState,
   GameStateRoot,
-  Parcel,
+  ParcelInstance,
   SkillTree
 }
 import cats.implicits.*
 import gameanalyzer.Simulation.SimulationState
+import gameanalyzer.wiki.{MediaWikiApi, WikiCredentials, WikiPage}
+import gameanalyzer.wikigen.WikiTables
+
+import java.nio.file.{Files, Path}
+import java.time.LocalDateTime
+import scala.util.{Failure, Success}
 
 object Main {
   case class SummaryFlags(
@@ -44,14 +50,29 @@ object Main {
 
   case class Args(
       summaryFlags: SummaryFlags,
+      customCredentialsPath: Option[Path],
       blueprint: Option[String],
       saveFile: String
-  )
+  ) {
+    def credentialsPath: Path = customCredentialsPath.getOrElse(
+      Path.of(
+        System.getProperty("user.home"),
+        "incremental-factory-wiki.credentials"
+      )
+    )
+  }
+
+  private val credentialsFileOpt: Opts[Option[Path]] = Opts
+    .option[Path](
+      long = "credentials",
+      metavar = "string",
+      help = "A blueprint to analyze."
+    )
+    .orNone
 
   private val blueprintOpt: Opts[Option[String]] = Opts
     .option[String](
       long = "blueprint",
-      short = "b",
       metavar = "string",
       help = "A blueprint to analyze."
     )
@@ -68,6 +89,7 @@ object Main {
   ) {
     (
       SummaryFlags.opt,
+      credentialsFileOpt,
       blueprintOpt,
       saveFileOpt
     ).mapN(Args.apply)
@@ -76,22 +98,38 @@ object Main {
   def main(rawArgs: Array[String]): Unit =
     command.parse(rawArgs, sys.env) match {
       case Left(help) if help.errors.isEmpty =>
-        // help was requested by the user, i.e.: `--help`
         println(help)
         sys.exit(0)
 
       case Left(help) =>
-        // user needs help due to bad/missing arguments
         System.err.println(help)
         sys.exit(1)
 
       case Right(parsedArgs) =>
-        SaveGameLoader.load(parsedArgs.saveFile).map { gsr =>
-          run(parsedArgs, gsr)
+        SaveGameLoader.load(parsedArgs.saveFile) match {
+          case Success(gsr)       => run(parsedArgs, gsr)
+          case Failure(exception) => exception.printStackTrace(System.err)
         }
     }
 
   def run(args: Args, gsr: GameStateRoot): Unit = {
+
+    val wikiOps = for {
+      creds <- WikiCredentials.load(args.credentialsPath)
+      api <- MediaWikiApi.login(creds)
+      _ <- api.getPage("stone")
+      _ <- api.upsertPage(
+        title = "bot_test_page",
+        newContent = s"Updated on ${LocalDateTime.now()}"
+      )
+      _ <- api.upsertPage(
+        title = "bot_test_page_2",
+        newContent = s"Updated on ${LocalDateTime.now()}"
+      )
+    } yield ()
+
+    val _ = wikiOps.get
+
     val gameState = gsr.gameState
 
     if args.summaryFlags.buildings then printBuildingSummary(gameState)
@@ -99,18 +137,51 @@ object Main {
     if args.summaryFlags.skills then printSkillTree(gameState.skilltree)
 
 //    printFlowTree(gameState)
+//    println("")
+//    println("═══════════════════════════")
+//    println("")
+
+//    val simState = Simulation(gameState).run()
+//    printDeficitParcels(simState)
 
     println("")
-    println("═══════════════════════════")
+    println("=== ITEMS WIKI TABLE ===")
     println("")
+    println(WikiTables.itemsTable())
 
-    val simState = Simulation(gameState).run()
-    printDeficitParcels(simState)
+    println("")
+    println("=== BUILDINGS WIKI TABLE ===")
+    println("")
+    println(WikiTables.buildingsTable())
   }
+
+//
+//  private def printParcelTypeWikiTable(): Unit = {
+//
+//    println("=== PARCEL TYPES WIKI TABLE ===")
+//    println("")
+//    println("{| class=\"sortable\"")
+//    println(
+//      "! Name !! Base<br>Connections !! Base<br>Buildings !! Base<br>Storage"
+//    )
+//    val allTypes = ParcelType.values
+//
+//    println(
+//      allTypes
+//        .map(p => {
+//          val limits = p.baseLimits
+//          s"| ${p.name} || ${limits.connections} || ${limits.buildings} || ${limits.storage}"
+//        })
+//        .mkString("|-\n", "\n|-\n", "\n|}\n")
+//    )
+//
+//    println("=== END WIKI TABLE ===")
+//
+//  }
 
   private def printBuildingSummary(gameState: GameState): Unit = {
     val allBuildings =
-      gameState.parcels.parcelList
+      gameState.parcels.instances
         .flatMap(_.buildings)
         .groupMap(_._1)(_._2)
         .view
@@ -130,7 +201,7 @@ object Main {
 
   private def printResourceSummary(gameState: GameState): Unit = {
     val allResources =
-      gameState.parcels.parcelList
+      gameState.parcels.instances
         .flatMap(_.resources)
         .groupMap(_._1)(_._2)
         .view
@@ -206,7 +277,7 @@ object Main {
   }
 
   private def printFlowTree(gameState: GameState): Unit = {
-    val parcels: Seq[Parcel] = gameState.parcels.parcelList
+    val parcels: Seq[ParcelInstance] = gameState.parcels.instances
     val connections = gameState.nodeConnections
 
     val exporterIds = connections.map(_.sourceId).toSet
@@ -231,5 +302,6 @@ object Main {
     )
 
     println(table.withBorders().toStringBlock)
+    table.bodyRows.foreach(r => println(r))
   }
 }

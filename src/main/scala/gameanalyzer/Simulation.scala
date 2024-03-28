@@ -8,14 +8,14 @@ import scala.annotation.tailrec
 
 object Simulation {
   case class CalculatedParcel(
-      underlying: Parcel,
-      resourceImports: Seq[(Resource, Double)],
-      unboostedProduction: Map[Resource, Double],
-      production: Map[Resource, Double],
-      consumption: Map[Resource, Double],
-      availability: Map[Resource, Double],
-      deficit: Map[Resource, Double],
-      excess: Map[Resource, Double]
+                               underlying: ParcelInstance,
+                               resourceImports: Seq[(Resource, Double)],
+                               unboostedProduction: Map[Resource, Double],
+                               production: Map[Resource, Double],
+                               consumption: Map[Resource, Double],
+                               availability: Map[Resource, Double],
+                               deficit: Map[Resource, Double],
+                               excess: Map[Resource, Double]
   )
 
   case class CalculatedConnection(
@@ -61,22 +61,22 @@ class Simulation(gameState: GameState) {
   import Simulation.*
 
   object Raw {
-    val allParcels: Seq[Parcel] = gameState.parcels.parcelList
+    val allParcels: Seq[ParcelInstance] = gameState.parcels.instances
     val allConnections = gameState.nodeConnections
     val allImporterIds = allConnections.map(_.targetId).toSet
     val rootParcels = allParcels.filterNot(p => allImporterIds.contains(p.id))
 
-    def parcelById(id: String): Parcel =
+    def parcelById(id: String): ParcelInstance =
       allParcels.find(_.id == id).get
 
-    def outgoingFrom(parcel: Parcel): Seq[(NodeConnection, Parcel)] = {
+    def outgoingFrom(parcel: ParcelInstance): Seq[(NodeConnection, ParcelInstance)] = {
       allConnections
         .filter(_.sourceId == parcel.id)
         .map(conn => conn -> parcelById(conn.targetId))
 
     }
 
-    def incomingTo(parcel: Parcel): Seq[(Parcel, NodeConnection)] = {
+    def incomingTo(parcel: ParcelInstance): Seq[(ParcelInstance, NodeConnection)] = {
       allConnections
         .filter(_.targetId == parcel.id)
         .map(conn => parcelById(conn.sourceId) -> conn)
@@ -84,8 +84,8 @@ class Simulation(gameState: GameState) {
   }
 
   private def calculateParcel(
-      parcel: Parcel,
-      imports: Seq[(Resource, Double)]
+                               parcel: ParcelInstance,
+                               imports: Seq[(Resource, Double)]
   ): CalculatedParcel = {
     val consumption = parcel.consumptionMap
     val production = parcel.productionMapForSkills(gameState.skilltree)
@@ -166,7 +166,7 @@ class Simulation(gameState: GameState) {
         state.unresolvedParcelIds.contains(p.id)
         && rawConns.forall(nc => state.connections.exists(_.underlying == nc))
       })
-    
+
     if (nextTranche.isEmpty) {
       state
     } else {

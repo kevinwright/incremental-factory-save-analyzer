@@ -7,10 +7,8 @@ case class SkillTree(
   def throughputOptimizationNodes =
     nodes.filter(_.skillType == Some("throughputOptimization"))
 
-  def baseThroughput: Double = nodes
-    .find(_.id == "increaseEdgeThroughput")
-    .flatMap(_.currentSimpleValue)
-    .getOrElse(8.0d)
+  def baseThroughput: Double =
+    valueFor(nodeId = "increaseEdgeThroughput", default = 8.0d)
 
   def maxThroughputFor(resource: Resource): Double = {
     val multiplier = throughputOptimizationNodes
@@ -27,4 +25,10 @@ case class SkillTree(
       .getOrElse(0.0d)
     pctBoost / 100.0d
   }
+
+  def valueFor(nodeId: String, default: Double = 0.0d): Double =
+    nodes
+      .find(_.id == nodeId)
+      .flatMap(_.currentSimpleValue)
+      .getOrElse(default)
 }

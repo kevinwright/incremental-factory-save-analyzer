@@ -1,7 +1,9 @@
 package gameanalyzer.model
 
-case class Parcels(
-    parcelList: Seq[Parcel],
+import com.github.plokhotnyuk.jsoniter_scala.macros.named
+
+case class ParcelInstanceCollection(
+    @named("parcelList") instances: Seq[ParcelInstance],
     currentParcelId: String,
     maxBuildingsPerParcel: Int,
     upgradeCosts: UpgradeCosts,
