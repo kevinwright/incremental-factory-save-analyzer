@@ -41,7 +41,7 @@ object ModelCodecs {
               x.asInstanceOf[SimpleSkillValuesType],
               out
             )
-          case _: SkillTreeNodeValues.Compound =>
+          case _: SaveSkillTreeNodeValues.Compound =>
             compoundSkillValuesCodec.encodeValue(
               x.asInstanceOf[CompoundSkillValuesType],
               out

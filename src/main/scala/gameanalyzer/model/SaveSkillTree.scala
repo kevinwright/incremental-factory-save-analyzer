@@ -1,7 +1,7 @@
 package gameanalyzer.model
 
-case class SkillTree(
-    nodes: Seq[SkillTreeNode]
+case class SaveSkillTree(
+    nodes: Seq[SaveSkillTreeNode]
 ) {
   def specializationNodes = nodes.filter(_.skillType == Some("specialization"))
   def throughputOptimizationNodes =
@@ -10,7 +10,7 @@ case class SkillTree(
   def baseThroughput: Double =
     valueFor(nodeId = "increaseEdgeThroughput", default = 8.0d)
 
-  def maxThroughputFor(resource: Resource): Double = {
+  def maxThroughputFor(resource: Item): Double = {
     val multiplier = throughputOptimizationNodes
       .find(_.affectedResources.contains(resource.name))
       .flatMap(_.currentSimpleValue)
@@ -18,7 +18,7 @@ case class SkillTree(
     baseThroughput * multiplier
   }
 
-  def specializationBoostFor(resource: Resource): Double = {
+  def specializationBoostFor(resource: Item): Double = {
     val pctBoost = specializationNodes
       .find(_.affectedResources.contains(resource.name))
       .flatMap(_.currentSimpleValue)

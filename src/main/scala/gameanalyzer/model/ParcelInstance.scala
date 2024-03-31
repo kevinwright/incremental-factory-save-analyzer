@@ -28,29 +28,29 @@ object ParcelInstance {
   }
 }
 case class ParcelInstance(
-    id: String,
-    x: Double,
-    y: Double,
-    nodeConnectionCount: Int,
-    orientation: Int,
-    cluster: Int,
-    continent: Int,
-    planet: Int,
-    maxBuildings: Int,
-    maxConnections: Int,
-    parcelType: ParcelType,
-    maxResources: Double,
-    HQ: Boolean,
-    buildings: Map[Building, Int],
-    activeBuildings: Map[Building, Int],
-    resources: Map[Resource, Double],
-    // upgrades: Upgrades,
-    // productionRateModifier: Int,
-    // consumptionRateModifier: Int,
-    // buildingProductionRateModifiers,
-    // buildingConsumptionRateModifiers,
-    outputValues: Map[String, OutputValue],
-    name: Option[String]
+                           id: String,
+                           x: Double,
+                           y: Double,
+                           nodeConnectionCount: Int,
+                           orientation: Int,
+                           cluster: Int,
+                           continent: Int,
+                           planet: Int,
+                           maxBuildings: Int,
+                           maxConnections: Int,
+                           parcelType: ParcelType,
+                           maxResources: Double,
+                           HQ: Boolean,
+                           buildings: Map[Building, Int],
+                           activeBuildings: Map[Building, Int],
+                           resources: Map[Item, Double],
+                           // upgrades: Upgrades,
+                           // productionRateModifier: Int,
+                           // consumptionRateModifier: Int,
+                           // buildingProductionRateModifiers,
+                           // buildingConsumptionRateModifiers,
+                           outputValues: Map[String, OutputValue],
+                           name: Option[String]
 ) {
   def displayName: String = name.getOrElse(id)
 
@@ -63,7 +63,7 @@ case class ParcelInstance(
     t3s = buildings.getOrElse(Building.speedBeaconT2, 0)
   )
 
-  def consumptionMap: ListMap[Resource, Double] = (
+  def consumptionMap: ListMap[Item, Double] = (
     for {
       (building, numBuildings) <- buildings.toSeq.filter(_._2 > 0)
       (resource, resourceQty) <- building.inputsMap.toSeq
@@ -74,7 +74,7 @@ case class ParcelInstance(
     *   used to determine bonuses
     * @return
     */
-  def productionMapForSkills(skillTree: SkillTree): ListMap[Resource, Double] =
+  def productionMapForSkills(skillTree: SaveSkillTree): ListMap[Item, Double] =
     sumValues(
       for {
         (building, numBuildings) <- buildings.toSeq.filter(_._2 > 0)
@@ -88,7 +88,7 @@ case class ParcelInstance(
       }
     )
 
-  def unboostedProductionMap: ListMap[Resource, Double] =
+  def unboostedProductionMap: ListMap[Item, Double] =
     sumValues(
       for {
         (building, numBuildings) <- buildings.toSeq

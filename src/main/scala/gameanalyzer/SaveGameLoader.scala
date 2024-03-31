@@ -8,27 +8,33 @@ import com.github.plokhotnyuk.jsoniter_scala.core.*
 
 import java.io.InputStream
 import java.nio.file.{Files, Path}
-import scala.io.BufferedSource
+import scala.io.{Source, BufferedSource}
 import model.ModelCodecs.given
+import cats.effect.{IO, Resource}
+import java.io.{File, FileInputStream}
 
 object SaveGameLoader {
-  def load(pathStr: String): Try[GameStateRoot] =
-    Using(sourceForPath(pathStr)) { src =>
+  def load(pathStr: String): IO[GameStateRoot] =
+    sourceForPath(pathStr).use { src =>
       val text = src.mkString
       if text.trim.startsWith("{") then {
-        readFromString[GameStateRoot](text)
+        IO(readFromString[GameStateRoot](text))
       } else {
         BitVector.fromBase64Descriptive(text) match {
           case Left(err) => sys.error(err)
           case Right(vec) =>
-            readFromByteBuffer[GameStateRoot](vec.toByteBuffer)
+            IO(readFromByteBuffer[GameStateRoot](vec.toByteBuffer))
         }
       }
     }
 
-  def sourceForPath(pathStr: String): BufferedSource =
-    io.Source.fromInputStream(
-      inputStreamForPath(pathStr: String)
+  def sourceForPath(pathStr: String): Resource[IO, BufferedSource] =
+    Resource.fromAutoCloseable(
+      IO(
+        Source.fromInputStream(
+          inputStreamForPath(pathStr: String)
+        )
+      )
     )
 
   def inputStreamForPath(pathStr: String): InputStream =

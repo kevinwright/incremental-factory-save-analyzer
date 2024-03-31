@@ -1,14 +1,15 @@
 package gameanalyzer.wiki
 
 import com.github.plokhotnyuk.jsoniter_scala.core.*
+import cats.effect.{IO, Resource}
 import sttp.client4.*
 import sttp.model.Uri
 import sttp.model.MediaType
 import sttp.model.headers.CookieWithMeta
+import sttp.client4.httpclient.cats.HttpClientCatsBackend
 
-import scala.util.{Failure, Success, Try}
+//import scala.util.{Failure, Success, Try}
 
-val backend = DefaultSyncBackend()
 val restEndpoint = uri"https://incrementalfactory.wiki.gg/rest.php/v1"
 val apiEndpoint = uri"https://incrementalfactory.wiki.gg/api.php"
 
@@ -17,55 +18,58 @@ extension (uri: Uri) {
     uri.addPath(part)
 }
 
-def fromJsonAs[A: JsonValueCodec]: ResponseAs[Try[A]] =
+def ioFromJson[A: JsonValueCodec]: ResponseAs[IO[A]] =
   asByteArray.map {
-    case Left(err)  => Failure(RuntimeException(err))
-    case Right(buf) => Try(readFromArray(buf))
+    case Left(err)  => IO.raiseError(RuntimeException(err))
+    case Right(buf) => IO(readFromArray(buf))
   }
 
-def asTry: ResponseAs[Try[String]] =
+def asIO: ResponseAs[IO[String]] =
   asString.map {
-    case Left(err)  => Failure(RuntimeException(err))
-    case Right(str) => Success(str)
+    case Left(err)  => IO.raiseError(RuntimeException(err))
+    case Right(str) => IO.pure(str)
   }
 
 class MediaWikiApi private (
+    backend: Backend[IO],
     val tokens: WikiTokens,
     requestor: PartialRequest[Either[String, String]]
 ) {
-  def getPage(title: String): Try[WikiPage] =
+  def getPage(title: String): IO[WikiPage] =
     requestor
       .get(restEndpoint / "page" / title)
-      .response(fromJsonAs[WikiPage])
+      .response(ioFromJson[WikiPage])
       .send(backend)
-      .body
+      .flatMap(_.body)
 
-  def createPage(content: WikiPage): Try[WikiPage] =
+  def createPage(content: WikiPage): IO[WikiPage] =
     requestor
       .body(writeToString(content))
       .post(restEndpoint / "page")
-      .response(fromJsonAs[WikiPage])
+      .response(ioFromJson[WikiPage])
       .send(backend)
-      .body
+      .flatMap(_.body)
 
-  def updatePage(content: WikiPage): Try[WikiPage] =
+  def updatePage(content: WikiPage): IO[WikiPage] =
     requestor
       .body(writeToString(content))
       .put(restEndpoint / "page" / content.title)
-      .response(fromJsonAs[WikiPage])
+      .response(ioFromJson[WikiPage])
       .send(backend)
-      .body
+      .flatMap(_.body)
 
-  def upsertPage(title: String, newContent: String): Try[WikiPage] = {
-    getPage(title) match {
-      case Success(existing) =>
-        val updatedContent = existing.copy(
-          source = newContent,
-          comment = Some("Updated by a bot"),
-          token = Some(tokens.csrftoken)
+  def upsertPage(title: String, newContent: String): IO[WikiPage] = {
+    getPage(title)
+      .flatMap(existing =>
+        updatePage(
+          existing.copy(
+            source = newContent,
+            comment = Some("Updated by a bot"),
+            token = Some(tokens.csrftoken)
+          )
         )
-        updatePage(updatedContent)
-      case Failure(_) =>
+      )
+      .recoverWith(_ =>
         createPage(
           WikiPage(
             title = title,
@@ -75,18 +79,18 @@ class MediaWikiApi private (
             token = Some(tokens.csrftoken)
           )
         )
-    }
+      )
   }
-
 }
 
 object MediaWikiApi {
 
   private def queryTokens(
+      backend: Backend[IO],
       requestor: PartialRequest[Either[String, String]]
-  ): Try[(WikiTokens, Seq[CookieWithMeta])] = {
+  ): IO[(WikiTokens, Seq[CookieWithMeta])] = {
 
-    val rawResponse = requestor
+    val responseIO = requestor
       .get(
         apiEndpoint.addParams(
           ("action", "query"),
@@ -95,22 +99,24 @@ object MediaWikiApi {
           ("type", "*")
         )
       )
-      .response(fromJsonAs[WikiTokenQueryResponse])
+      .response(ioFromJson[WikiTokenQueryResponse])
       .send(backend)
 
     for {
-      body <- rawResponse.body
+      response <- responseIO
+      body <- response.body
       tokens = body.query.tokens
-      cookies <- Try(rawResponse.unsafeCookies)
+      cookies <- IO(response.unsafeCookies)
     } yield (tokens, cookies)
   }
 
   private def performLogin(
+      backend: Backend[IO],
       requestor: PartialRequest[Either[String, String]],
       credentials: WikiCredentials,
       loginToken: String
-  ): Try[Seq[CookieWithMeta]] = {
-    val rawResponse = requestor
+  ): IO[Seq[CookieWithMeta]] = {
+    val responseIO = requestor
       .body(
         ("lgname", credentials.wikiUser),
         ("lgpassword", credentials.wikiPass),
@@ -122,31 +128,43 @@ object MediaWikiApi {
           ("format", "json")
         )
       )
-      .response(asTry)
+      .response(asIO)
       .send(backend)
-
-    rawResponse.body.flatMap(_ => Try(rawResponse.unsafeCookies))
+    for {
+      response <- responseIO
+      _ <- response.body
+      cookies <- IO.delay(response.unsafeCookies)
+    } yield cookies
   }
 
-  def login(credentials: WikiCredentials): Try[MediaWikiApi] = {
+  def login(credentials: WikiCredentials): Resource[IO, MediaWikiApi] = {
     val requestor = (credentials.basicUser, credentials.basicPass) match {
       case (Some(u), Some(p)) => basicRequest.auth.basic(u, p)
       case _                  => basicRequest
     }
 
-    for {
-      (anonTokens, anonCookies) <- queryTokens(requestor)
-      cookies <- performLogin(
-        requestor.cookies(anonCookies),
-        credentials,
-        anonTokens.logintoken
+    HttpClientCatsBackend.resource[IO]().evalMap { backend =>
+      for {
+        anonResponse <- queryTokens(backend, requestor)
+        (anonTokens, anonCookies) = anonResponse
+        cookies <- performLogin(
+          backend,
+          requestor.cookies(anonCookies),
+          credentials,
+          anonTokens.logintoken
+        )
+        loggedInResponse <- queryTokens(
+          backend,
+          requestor.cookies(cookies)
+        )
+        (tokens, _) = loggedInResponse
+      } yield new MediaWikiApi(
+        backend = backend,
+        tokens = tokens,
+        requestor = requestor
+          .cookies(cookies)
+          .contentType(MediaType.ApplicationJson)
       )
-      (tokens, _) <- queryTokens(requestor.cookies(cookies))
-    } yield new MediaWikiApi(
-      requestor = requestor
-        .cookies(cookies)
-        .contentType(MediaType.ApplicationJson),
-      tokens = tokens
-    )
+    }
   }
 }

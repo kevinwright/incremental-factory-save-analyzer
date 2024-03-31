@@ -3,21 +3,21 @@ package gameanalyzer.model
 import scala.collection.immutable.ListMap
 import com.github.plokhotnyuk.jsoniter_scala.macros.named
 
-sealed trait SkillTreeNodeValues
+sealed trait SaveSkillTreeNodeValues
 
-object SkillTreeNodeValues {
+object SaveSkillTreeNodeValues {
   case class Simple(
       map: Map[String, Double]
-  ) extends SkillTreeNodeValues
+  ) extends SaveSkillTreeNodeValues
 
   case class Compound(
       map: Map[String, Map[String, Int]]
-  ) extends SkillTreeNodeValues
+  ) extends SaveSkillTreeNodeValues
 
-  case object Empty extends SkillTreeNodeValues
+  case object Empty extends SaveSkillTreeNodeValues
 }
 
-case class SkillTreeNode(
+case class SaveSkillTreeNode(
     name: String,
     id: String,
     @named("type") skillType: Option[String],
@@ -25,11 +25,9 @@ case class SkillTreeNode(
     cost: Seq[Int],
     currentLevel: Int,
     description: Seq[String],
-//    values: SkillTreeNodeValues,
-//    values: Map[String, Double | Map[String, Int]],
     values: ListMap[String, Double] | ListMap[String, Map[String, Int]],
     @named("values2") affectedResources: Seq[String],
-    connectedNodes: Seq[String]
+    @named("connectedNodes") connectedNodeIds: Seq[String]
 ) {
   def currentLevelDesc: String =
     if currentLevel <= 0 then "n/a"

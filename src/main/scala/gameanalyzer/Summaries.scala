@@ -2,7 +2,7 @@ package gameanalyzer
 
 import gameanalyzer.consoleui.Table
 import gameanalyzer.model.Building.remoteConstructionFacility
-import gameanalyzer.model.{GameState, ParcelInstance, SkillTree}
+import gameanalyzer.model.{GameState, ParcelInstance, SaveSkillTree}
 
 class Summaries(gameState: GameState) {
   lazy val allBuildings =
@@ -49,7 +49,7 @@ class Summaries(gameState: GameState) {
 
   def skillsTreeTable: Table = {
     val allNodes = gameState.skilltree.nodes
-    val nonRootNodeIds = allNodes.flatMap(_.connectedNodes).toSet
+    val nonRootNodeIds = allNodes.flatMap(_.connectedNodeIds).toSet
     val rootNodes = allNodes.filterNot(n => nonRootNodeIds.contains(n.id))
 
     Table.buildTreeTable(
@@ -57,7 +57,7 @@ class Summaries(gameState: GameState) {
       headerRow = Seq("ID", "Name", "Type", "Level", "Value"),
       roots = rootNodes,
       walkDown =
-        node => allNodes.filter(n => node.connectedNodes.contains(n.id)),
+        node => allNodes.filter(n => node.connectedNodeIds.contains(n.id)),
       mkRow = node =>
         Seq(
           node.id,

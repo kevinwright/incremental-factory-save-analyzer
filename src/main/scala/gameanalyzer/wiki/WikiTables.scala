@@ -1,8 +1,16 @@
 package gameanalyzer.wiki
 
-import gameanalyzer.model.{Building, ParcelType, Resource}
+import gameanalyzer.WikiFormatter
+import gameanalyzer.model.{Building, ParcelType, Item}
 
 object WikiTables {
+
+  def defaultFormatter = WikiFormatter(
+    iconSize = 24,
+    showItemIcons = true,
+    showBuildingIcons = true,
+    showItemText = true
+  )
 
   def mkTable(
       headers: Seq[String],
@@ -25,15 +33,15 @@ object WikiTables {
     mkTable(
       Seq("Item", "Category", "Order", "Unlocks<br>With"),
       Seq("left", "left", "right", "left"),
-      Resource.values
-        .filterNot(_ == Resource.nullResource)
+      Item.values
+        .filterNot(_ == Item.nullItem)
         .sortBy(_.ordinal)
         .map(r =>
           Seq(
-            r.wikiLinkWithIcon(24),
+            defaultFormatter.formatItem(r),
             r.category,
             r.order,
-            r.techTier.keyResource.wikiLinkWithIcon(24)
+            defaultFormatter.formatItem(r.techTier.keyItem)
           )
         )
     )
@@ -48,11 +56,11 @@ object WikiTables {
         .sortBy(b => (b.techTier.ordinal, b.ordinal))
         .map(b =>
           Seq(
-            b.wikiLinkWithIcon(24),
-            b.mainOutput.resource.wikiLink,
+            defaultFormatter.formatBuilding(b),
+            defaultFormatter.formatItem(b.mainOutput.item),
             b.category,
             b.netEnergy,
-            b.techTier.keyResource.wikiLinkWithIcon(24)
+            defaultFormatter.formatItem(b.techTier.keyItem)
           )
         )
     )
@@ -74,7 +82,7 @@ object WikiTables {
     val rows = ParcelType.values.map { pt =>
       s"""
           ||-
-          || style="text-align: left;" | [parcel${pt.name()}|${pt.name()}]
+          || style="text-align: left;" | [[${pt.displayName}]]
           || style="text-align: right;" | ${pt.baseLimits.connections}
           || style="text-align: right;" | ${pt.baseLimits.buildings}
           || style="text-align: right;" | ${pt.baseLimits.storage}

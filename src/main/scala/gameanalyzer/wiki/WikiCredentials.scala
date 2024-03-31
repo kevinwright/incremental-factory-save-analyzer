@@ -1,7 +1,10 @@
 package gameanalyzer.wiki
 
+import cats.effect.{IO, Resource}
+
 import java.nio.file.{Files, Path}
 import scala.util.{Try, Using}
+import scala.io.Source
 
 case class WikiCredentials(
     basicUser: Option[String],
@@ -11,24 +14,32 @@ case class WikiCredentials(
 )
 
 object WikiCredentials {
-  def load(path: Path): Try[WikiCredentials] =
-    Using(
-      io.Source.fromInputStream(
-        Files.newInputStream(path)
+  def load(path: Path): IO[WikiCredentials] =
+    Resource
+      .fromAutoCloseable(
+        IO(
+          Source.fromInputStream(
+            Files.newInputStream(path)
+          )
+        )
       )
-    ) { src =>
-      val map = src
-        .getLines()
-        .toSeq
-        .map(line => line.takeWhile(_ != '=') -> line.dropWhile(_ != '=').tail)
-        .toMap
+      .use { src =>
+        val map = src
+          .getLines()
+          .toSeq
+          .map(line =>
+            line.takeWhile(_ != '=') -> line.dropWhile(_ != '=').tail
+          )
+          .toMap
 
-      WikiCredentials(
-        map.get("basic-user"),
-        map.get("basic-pass"),
-        map("wiki-user"),
-        map("wiki-pass")
-      )
-    }
+        IO.pure(
+          WikiCredentials(
+            map.get("basic-user"),
+            map.get("basic-pass"),
+            map("wiki-user"),
+            map("wiki-pass")
+          )
+        )
+      }
 
 }

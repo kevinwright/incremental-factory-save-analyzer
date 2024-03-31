@@ -1,12 +1,12 @@
 package gameanalyzer.model
 
 enum TechTier(
-    keyResourceId: String
+    keyItemId: String
 ) {
-  lazy val keyResource: Resource =
-    Resource.valueOf(keyResourceId)
+  lazy val keyItem: Item =
+    Item.valueOf(keyItemId)
 
-  case Foundation extends TechTier("nullResource")
+  case Foundation extends TechTier("nullItem")
   case Steel extends TechTier("steel")
   case Gen1 extends TechTier("gen1Chip")
   case Gen2 extends TechTier("gen2Chip")

@@ -4,52 +4,53 @@ enum BuildingCategory {
   case Basics, Energy, Intermediates, `Progress & Expansion`, Beacons
 }
 
-import Resource.*
+import Item.*
 import BuildingCategory.*
 import TechTier.*
 
 object Buildings {
-  def ordered: Seq[Building] = Building.values.sortBy(_.ordinal())
+  def ordered: Seq[Building] =
+    Building.values.sortBy(_.ordinal()).filterNot(_ == Building.testBuilding)
 
-  def allBuiltUsing(resource: Resource): Seq[Building] =
+  def allBuiltUsing(item: Item): Seq[Building] =
     ordered
       .filter(
         _.cost
           .filter(_.qty > 0)
-          .map(_.resource)
-          .contains(resource)
+          .map(_.item)
+          .contains(item)
       )
       .distinct
 
-  def allProducing(resource: Resource): Seq[Building] =
-    ordered.filter(_.outputs.map(_.resource).contains(resource)).distinct
+  def allProducing(item: Item): Seq[Building] =
+    ordered.filter(_.outputs.map(_.item).contains(item)).distinct
 
-  def allConsuming(resource: Resource): Seq[Building] =
-    ordered.filter(_.inputs.map(_.resource).contains(resource)).distinct
+  def allConsuming(item: Item): Seq[Building] =
+    ordered.filter(_.inputs.map(_.item).contains(item)).distinct
 }
 
 enum Building(
-    val displayName: String,
-    val category: BuildingCategory,
-    val techTier: TechTier,
-    val cost: Set[CountedResource],
-    val inputs: Set[CountedResource],
-    val outputs: Set[CountedResource],
-    val netEnergy: Double,
-    val minable: Boolean,
-    val description: String
+               val displayName: String,
+               val category: BuildingCategory,
+               val techTier: TechTier,
+               val cost: Set[CountedItem],
+               val inputs: Set[CountedItem],
+               val outputs: Set[CountedItem],
+               val netEnergy: Double,
+               val minable: Boolean,
+               val description: String
 ) extends Enum[Building] {
 
-  def mainOutput: CountedResource = outputs.headOption match {
+  def mainOutput: CountedItem = outputs.headOption match {
     case Some(cr) => cr
-    case None     => Resource.nullResource * 0
+    case None     => Item.nullItem * 0
   }
 
-  def inputsMap: Map[Resource, Double] =
-    inputs.map(cr => cr.resource -> cr.qty).toMap
+  def inputsMap: Map[Item, Double] =
+    inputs.map(cr => cr.item -> cr.qty).toMap
 
-  def outputsMap: Map[Resource, Double] =
-    outputs.map(cr => cr.resource -> cr.qty).toMap
+  def outputsMap: Map[Item, Double] =
+    outputs.map(cr => cr.item -> cr.qty).toMap
 
   case testBuilding
       extends Building(

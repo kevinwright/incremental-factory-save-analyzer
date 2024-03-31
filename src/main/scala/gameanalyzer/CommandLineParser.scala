@@ -81,7 +81,7 @@ object CommandLineParser {
     ).mapN(Args.apply)
   }
 
-  def process[T](rawArgs: Array[String])(runFn: Args => T): T =
+  def process[T](rawArgs: Seq[String])(runFn: Args => T): T =
     command.parse(rawArgs, sys.env) match {
       case Left(help) if help.errors.isEmpty =>
         println(help)

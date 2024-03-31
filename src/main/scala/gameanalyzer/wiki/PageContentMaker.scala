@@ -1,73 +1,62 @@
 package gameanalyzer.wiki
 
-import gameanalyzer.model.{Building, Buildings, CountedResource, Resource}
-
-extension (r: Resource) {
-  def wikiIconLink(size: Int): String =
-    s"[[File:${r.icon}|link=${r.name}|alt=${r.displayName}|${size}px]]"
-
-  def wikiLink: String =
-    if r == Resource.nullResource then ""
-    else s"[[${r.name}|${r.displayName}]]"
-
-  def wikiLinkWithIcon(size: Int): String =
-    if r == Resource.nullResource then ""
-    else s"${wikiIconLink(size)}[[${r.name}|${r.displayName}]]"
-}
-
-extension (b: Building) {
-  def wikiLink: String =
-    s"[[${b.name}|${b.displayName}]]"
-
-  def wikiLinkWithIcon(size: Int): String = {
-    val icon = b.mainOutput.resource.wikiIconLink(size)
-    s"$icon[[${b.name}|${b.displayName}]]"
-  }
-}
-
-extension (cr: CountedResource) {
-  def wikiRender(iconSize: Int): String = {
-    val qty =
-      if cr.qty.floor == cr.qty
-      then cr.qty.intValue.toString
-      else cr.qty.toString
-
-    val icon = cr.resource.wikiIconLink(iconSize)
-    s"$qty × $icon"
-  }
-}
+import gameanalyzer.model.*
+import gameanalyzer.WikiFormatter
+import gameanalyzer.model.SkillCategory.ThroughputOptimization
 
 object PageContentMaker {
 
-  private def commaList(xs: Seq[String]): String = {
-    val result = xs.length match {
-      case 0 => "Nothing"
-      case 1 => xs.head
-      case 2 => s"${xs.head} and ${xs.last}"
-      case _ => xs.init.mkString("", ", ", s", and ${xs.last}")
-    }
-    result
-  }
+  def defaultFormatter = WikiFormatter(
+    iconSize = 24,
+    showItemIcons = true,
+    showBuildingIcons = true,
+    showItemText = true
+  )
 
-  private def ingredientsList(resources: Iterable[CountedResource]): String =
-    resources.map(_.wikiRender(24)).mkString(" ")
+  def smallIconFormatter = WikiFormatter(
+    iconSize = 16,
+    showItemIcons = true,
+    showBuildingIcons = true,
+    showItemText = true
+  )
 
-  private def resourceDescription(r: Resource): String =
+  def iconOnlyFormatter = WikiFormatter(
+    iconSize = 24,
+    showItemIcons = true,
+    showBuildingIcons = true,
+    showItemText = false
+  )
+
+  private def ingredientsList(
+      items: Iterable[CountedItem],
+      iconSize: Int = 24
+  ): String =
+    items.map(iconOnlyFormatter.formatCountedItem).mkString(" ")
+
+  private def buildingDescription(b: Building): String =
     Seq(
-      Some(s"${r.category} resource"),
+      b.displayName,
+      "Produces " + iconOnlyFormatter.formatCommaList(
+        b.outputs.map(iconOnlyFormatter.formatCountedItem).toSeq
+      )
+    ).mkString("", ". ", ".")
+
+  private def itemDescription(r: Item): String =
+    Seq(
+      Some(s"${r.category} item"),
       Some("Used in construction").filter(_ =>
         Buildings.allBuiltUsing(r).nonEmpty
       ),
       Some(
         Buildings
           .allConsuming(r)
-          .map(_.mainOutput.resource.wikiLinkWithIcon(16))
+          .map(b => smallIconFormatter.formatItem(b.mainOutput.item))
       )
         .filter(_.nonEmpty)
-        .map(xs => s"Needed to craft ${commaList(xs)}")
+        .map(xs => s"Needed to craft ${smallIconFormatter.formatCommaList(xs)}")
     ).flatten.mkString("", ". ", ".")
 
-  private def resourceConstructionUsage(r: Resource): String = {
+  private def itemConstructionUsage(r: Item): String = {
     val buildings = Buildings.allBuiltUsing(r)
     if buildings.isEmpty then ""
     else {
@@ -77,7 +66,7 @@ object PageContentMaker {
         Seq("left", "left"),
         buildings.map { b =>
           Seq(
-            b.wikiLinkWithIcon(size = 24),
+            defaultFormatter.formatBuilding(b),
             ingredientsList(b.cost.filter(_.qty > 0))
           )
         }
@@ -86,7 +75,7 @@ object PageContentMaker {
     }
   }
 
-  private def resourceConsumptionUsage(r: Resource): String = {
+  private def itemConsumptionUsage(r: Item): String = {
     val buildings = Buildings.allConsuming(r)
     if buildings.isEmpty then ""
     else {
@@ -96,7 +85,7 @@ object PageContentMaker {
         Seq("left", "left", "left"),
         buildings.map { b =>
           Seq(
-            b.wikiLinkWithIcon(size = 24),
+            defaultFormatter.formatBuilding(b),
             ingredientsList(b.outputs),
             ingredientsList(b.inputs)
           )
@@ -106,7 +95,7 @@ object PageContentMaker {
     }
   }
 
-  private def resourceProduction(r: Resource): String = {
+  private def itemProduction(r: Item): String = {
     val buildings = Buildings.allProducing(r)
     if buildings.isEmpty then ""
     else {
@@ -116,7 +105,7 @@ object PageContentMaker {
         Seq("left", "left", "left"),
         buildings.map { b =>
           Seq(
-            b.wikiLinkWithIcon(size = 24),
+            defaultFormatter.formatBuilding(b),
             ingredientsList(b.outputs),
             ingredientsList(b.inputs)
           )
@@ -126,18 +115,183 @@ object PageContentMaker {
     }
   }
 
-  def resourcePage(r: Resource): String = {
+  private def itemThroughputOptimization(
+      r: Item
+  ): Option[(String, String)] =
+    Skill.values.collectFirst {
+      case s: Skill
+          if s.category == SkillCategory.ThroughputOptimization
+            && s.affectedItems.contains(r) =>
+        val table = WikiTables.mkTable(
+          Seq("Skill Level", "Cost", "Description"),
+          Seq("right", "right", "left"),
+          s.makeRows(WikiFormatter()).map(_.productIterator.toSeq)
+        )
+        s.displayName -> table
+
+    }
+
+  private def itemSpecialization(r: Item): Option[(String, String)] =
+    Skill.values.collectFirst {
+      case s: Skill
+          if s.category == SkillCategory.Specialization
+            && s.affectedItems.contains(r) =>
+        val table = WikiTables.mkTable(
+          Seq("Skill Level", "Cost", "Description"),
+          Seq("right", "right", "left"),
+          s.makeRows(WikiFormatter()).map(_.productIterator.toSeq)
+        )
+        s.displayName -> table
+    }
+
+  private def itemStartingSupply(r: Item): Option[(String, String)] =
+    Skill.starterKitResources.levels match {
+      case rl: ItemLevels =>
+        val relevantLevels = rl.levelsWithItem(r)
+
+        val table = WikiTables.mkTable(
+          Seq("Skill Level", "Cost", "Description"),
+          Seq("right", "right", "left"),
+          Skill.starterKitResources
+            .makeRows(WikiFormatter())
+            .filter(rowTuple => relevantLevels.contains(rowTuple._1))
+            .map(_.productIterator.toSeq)
+        )
+        Some(Skill.starterKitResources.displayName -> table)
+      case _ => None
+    }
+
+  def itemPage(r: Item): String = {
+    val skillBlocks = Seq(
+      itemThroughputOptimization(r),
+      itemSpecialization(r),
+      itemStartingSupply(r)
+    ).flatten
+
+    val skillSection =
+      if skillBlocks.isEmpty then ""
+      else {
+        skillBlocks
+          .map((title, table) => s"====[[$title]]====\n\n$table")
+          .mkString("== Relevant Skills ==\n\n", "\n\n", "\n")
+      }
+
     s"""
-      ~{{Infobox simple
-      ~| title = ${r.displayName}
-      ~| description = ${resourceDescription(r)}
-      ~}}
-      ~
-      ~${resourceConstructionUsage(r)}
-      ~${resourceConsumptionUsage(r)}
-      ~${resourceProduction(r)}
-      ~
-      ~[[Category:Resource]]
-      ~""".stripMargin('~')
+    ~{{Infobox simple
+    ~| title = ${r.displayName}
+    ~| image = ${r.name()}-96.png
+    ~| description = ${itemDescription(r)}
+    ~}}
+    ~
+    ~${itemConstructionUsage(r)}
+    ~${itemConsumptionUsage(r)}
+    ~${itemProduction(r)}
+    ~$skillSection
+    ~
+    ~
+    ~[[Category:Item]]
+    ~""".stripMargin('~')
+  }
+
+  private def buildingCost(b: Building): String = {
+    val header = s"== Building Cost =="
+    val body = ingredientsList(b.cost.filter(_.qty > 0), iconSize = 32)
+    s"$header\n\n$body"
+  }
+
+  private def buildingProduction(b: Building): String = {
+    val header = s"== Production =="
+    val buildingLink = defaultFormatter.formatBuilding(b)
+    val outputs = ingredientsList(b.outputs)
+    val inputs = ingredientsList(b.inputs)
+
+    val table = WikiTables.mkTable(
+      Seq("Building", "Output", "Inputs"),
+      Seq("left", "left", "left"),
+      Seq(
+        Seq(buildingLink, outputs, inputs)
+      )
+    )
+    s"$header\n\n$table"
+  }
+
+  def buildingPage(b: Building): String = {
+    s"""
+       ~{{Infobox simple
+       ~| title = ${b.displayName}
+       ~| description = ${buildingDescription(b)}
+       ~}}
+       ~
+       ~${buildingCost(b)}
+       ~${buildingProduction(b)}
+       ~
+       ~[[Category:Building]]
+       ~${if b.minable then "[[Category:Mineable]]" else ""}
+       ~""".stripMargin('~')
+  }
+
+  def skillTree(skilltree: SaveSkillTree): String = {
+    val allNodes = skilltree.nodes
+    val nonRootNodeIds = allNodes.flatMap(_.connectedNodeIds).toSet
+    val rootNodes = allNodes.filterNot(n => nonRootNodeIds.contains(n.id))
+
+    def recurse(parent: SaveSkillTreeNode, depth: Int): String = {
+      val subNodes =
+        allNodes.filter(n => parent.connectedNodeIds.contains(n.id))
+      val subLines = subNodes.map(n => recurse(n, depth + 1))
+      val prefix = "*" * depth
+      val lines = s"$prefix [[${parent.name}]]" +: subLines
+      lines.mkString("\n")
+    }
+
+    rootNodes
+      .map(n => recurse(n, 1))
+      .mkString("{{Tree list}}\n", "\n", "\n{{Tree list/end}}\n")
+  }
+
+  def skillPage(skill: Skill): String = {
+    val content = skill.levels match {
+      case SingleLevel(cost) =>
+        s"""
+           ~== Description ==
+           ~
+           ~${skill.displayName}
+           ~
+           ~== Cost ==
+           ~
+           ~$cost Points
+           ~
+           ~""".stripMargin('~')
+      case ml: MultiLevels =>
+        "== Levels ==\n\n" + WikiTables.mkTable(
+          Seq("Level", "Cost", "Description"),
+          Seq("left", "right", "left"),
+          skill
+            .makeRows(smallIconFormatter)
+            .map(_.productIterator.toSeq)
+        )
+    }
+
+    s"""
+       ~$content
+       ~
+       ~== Unlocks ==
+       ~${skill.connectedNodes
+        .map(n => s"* [[${n.displayName}]]")
+        .mkString("\n")}
+       ~
+       ~[[Category:Skill]]
+       ~${skill.category match {
+        case SkillCategory.Unlock =>
+          "[[Category:Unlock Skill]]"
+        case SkillCategory.LimitIncrease =>
+          "[[Category:Limit Increase Skill]]"
+        case SkillCategory.Specialization =>
+          "[[Category:Specialization Skill]]"
+        case SkillCategory.ThroughputOptimization =>
+          "[[Category:Throughput Skill]]"
+      }}
+       ~
+       ~""".stripMargin('~')
   }
 }

@@ -2,25 +2,25 @@ package gameanalyzer
 
 import gameanalyzer.model.*
 import gameanalyzer.CollectionUtils.*
-import gameanalyzer.model.Resource.nullResource
+import gameanalyzer.model.Item.nullItem
 
 import scala.annotation.tailrec
 
 object Simulation {
   case class CalculatedParcel(
-                               underlying: ParcelInstance,
-                               resourceImports: Seq[(Resource, Double)],
-                               unboostedProduction: Map[Resource, Double],
-                               production: Map[Resource, Double],
-                               consumption: Map[Resource, Double],
-                               availability: Map[Resource, Double],
-                               deficit: Map[Resource, Double],
-                               excess: Map[Resource, Double]
+      underlying: ParcelInstance,
+      itemImports: Seq[(Item, Double)],
+      unboostedProduction: Map[Item, Double],
+      production: Map[Item, Double],
+      consumption: Map[Item, Double],
+      availability: Map[Item, Double],
+      deficit: Map[Item, Double],
+      excess: Map[Item, Double]
   )
 
   case class CalculatedConnection(
       underlying: NodeConnection,
-      resource: Resource,
+      item: Item,
       maxThroughput: Double,
       actualThroughput: Double,
       source: CalculatedParcel,
@@ -38,22 +38,19 @@ object Simulation {
 
     def importsTo(
         c: CalculatedParcel,
-        r: Resource = nullResource
+        r: Item = nullItem
     ): Seq[CalculatedConnection] = {
-      if r == Resource.nullResource then
+      if r == Item.nullItem then
         connections.filter(_.targetId == c.underlying.id)
-      else
-        connections.filter(c =>
-          c.targetId == c.underlying.id && c.resource == r
-        )
+      else connections.filter(c => c.targetId == c.underlying.id && c.item == r)
     }
 
     def exportsFrom(
         c: CalculatedParcel,
-        r: Resource = nullResource
+        r: Item = nullItem
     ): Seq[CalculatedConnection] = {
-      if r == Resource.nullResource then connections.filter(_.source == c)
-      else connections.filter(c => c.source == c && c.resource == r)
+      if r == Item.nullItem then connections.filter(_.source == c)
+      else connections.filter(c => c.source == c && c.item == r)
     }
   }
 }
@@ -69,14 +66,18 @@ class Simulation(gameState: GameState) {
     def parcelById(id: String): ParcelInstance =
       allParcels.find(_.id == id).get
 
-    def outgoingFrom(parcel: ParcelInstance): Seq[(NodeConnection, ParcelInstance)] = {
+    def outgoingFrom(
+        parcel: ParcelInstance
+    ): Seq[(NodeConnection, ParcelInstance)] = {
       allConnections
         .filter(_.sourceId == parcel.id)
         .map(conn => conn -> parcelById(conn.targetId))
 
     }
 
-    def incomingTo(parcel: ParcelInstance): Seq[(ParcelInstance, NodeConnection)] = {
+    def incomingTo(
+        parcel: ParcelInstance
+    ): Seq[(ParcelInstance, NodeConnection)] = {
       allConnections
         .filter(_.targetId == parcel.id)
         .map(conn => parcelById(conn.sourceId) -> conn)
@@ -84,27 +85,27 @@ class Simulation(gameState: GameState) {
   }
 
   private def calculateParcel(
-                               parcel: ParcelInstance,
-                               imports: Seq[(Resource, Double)]
+      parcel: ParcelInstance,
+      imports: Seq[(Item, Double)]
   ): CalculatedParcel = {
     val consumption = parcel.consumptionMap
     val production = parcel.productionMapForSkills(gameState.skilltree)
 
-    val availability: Map[Resource, Double] =
-      Resource.values.toSeq.flatMap { r =>
+    val availability: Map[Item, Double] =
+      Item.values.toSeq.flatMap { r =>
         val imported = imports.sumValues.getOrElse(r, 0.0d)
         val produced = production.getOrElse(r, 0.0d)
         val sum = imported + produced
         if sum > 0 then Some(r -> sum) else None
       }.toMap
 
-    val deficit: Map[Resource, Double] =
+    val deficit: Map[Item, Double] =
       consumption.flatMap { case (r, n) =>
         val delta = availability.getOrElse(r, 0.0d) - n
         if delta < 0 then Some(r -> delta) else None
       }
 
-    val excess: Map[Resource, Double] =
+    val excess: Map[Item, Double] =
       availability.flatMap { case (r, n) =>
         val delta = n - consumption.getOrElse(r, 0.0d)
         if delta > 0 then Some(r -> delta) else None
@@ -112,7 +113,7 @@ class Simulation(gameState: GameState) {
 
     CalculatedParcel(
       underlying = parcel,
-      resourceImports = imports,
+      itemImports = imports,
       consumption = consumption,
       availability = availability,
       unboostedProduction = parcel.unboostedProductionMap,
@@ -129,18 +130,18 @@ class Simulation(gameState: GameState) {
       .filter(_.sourceId == parcel.underlying.id)
 
     underlying.map { c =>
-      val resource = c.sourceHandle
-        .map(Resource.valueOf)
-        .getOrElse(Resource.nullResource)
+      val item = c.sourceHandle
+        .map(Item.valueOf)
+        .getOrElse(Item.nullItem)
 
-      val shareCount = underlying.count(_.sourceHandle.contains(resource))
+      val shareCount = underlying.count(_.sourceHandle.contains(item))
 
-      val maxThroughput = gameState.skilltree.maxThroughputFor(resource)
+      val maxThroughput = gameState.skilltree.maxThroughputFor(item)
       val available =
-        parcel.excess.getOrElse(resource, 0.0d) / shareCount.doubleValue
+        parcel.excess.getOrElse(item, 0.0d) / shareCount.doubleValue
       CalculatedConnection(
         underlying = c,
-        resource = resource,
+        item = item,
         maxThroughput = maxThroughput,
         actualThroughput = maxThroughput min available,
         source = parcel,
@@ -172,8 +173,8 @@ class Simulation(gameState: GameState) {
     } else {
       val newCalculatedParcels = nextTranche.map { p =>
         val inbounds = state.connections.filter(_.targetId == p.id)
-        val imports: Seq[(Resource, Double)] =
-          inbounds.map(cc => cc.resource -> cc.actualThroughput)
+        val imports: Seq[(Item, Double)] =
+          inbounds.map(cc => cc.item -> cc.actualThroughput)
         calculateParcel(p, imports)
       }
       val newCalculatedConnections =

@@ -16,7 +16,7 @@ case class ParcelLimits(
       math.round(connections.doubleValue * (1.0d + pctBoost)).intValue
   )
 
-  def withSkills(skillTree: SkillTree): ParcelLimits = {
+  def withSkills(skillTree: SaveSkillTree): ParcelLimits = {
     val buildingLimitBoost: Double =
       skillTree.valueFor("increaseBuildingLimit")
     val nodeConnectionBoost: Double =

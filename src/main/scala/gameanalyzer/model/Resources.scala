@@ -1,29 +1,33 @@
 package gameanalyzer.model
 
-enum ResourceCategory {
-  case Raw, Basic, Advanced, Points, Military, Rocket, Science, Helper
-}
-
-import ResourceCategory.*
 import TechTier.*
 import com.github.plokhotnyuk.jsoniter_scala.core.JsonValueCodec
 import com.github.plokhotnyuk.jsoniter_scala.macros.JsonCodecMaker
 
-object Resource {
-  def ordered: Seq[Resource] = Resource.values.sortBy(_.ordinal())
+enum ItemCategory {
+  case Raw, Basic, Advanced, Points, Military, Rocket, Science, Helper
+}
 
-  given codec: JsonValueCodec[Resource] =
+import ItemCategory.*
+
+object Item {
+  def ordered: Seq[Item] =
+    Item.values
+      .sortBy(_.ordinal())
+      .filterNot(_ == Item.nullItem)
+
+  given codec: JsonValueCodec[Item] =
     JsonCodecMaker.makeWithoutDiscriminator
 }
-enum Resource(
+enum Item(
     val displayName: String,
-    val category: ResourceCategory,
+    val category: ItemCategory,
     val techTier: TechTier,
     val order: Int,
     val icon: String
-) extends Enum[Resource] {
-  case nullResource
-      extends Resource(
+) extends Enum[Item] {
+  case nullItem
+      extends Item(
         displayName = "<None>",
         category = Basic,
         techTier = Foundation,
@@ -31,7 +35,7 @@ enum Resource(
         icon = "null-96.png"
       )
   case stone
-      extends Resource(
+      extends Item(
         displayName = "Stone",
         category = Basic,
         techTier = Foundation,
@@ -39,7 +43,7 @@ enum Resource(
         icon = "stone-96.png"
       )
   case bricks
-      extends Resource(
+      extends Item(
         displayName = "Bricks",
         category = Basic,
         techTier = Foundation,
@@ -47,7 +51,7 @@ enum Resource(
         icon = "bricks-96.png"
       )
   case ironOre
-      extends Resource(
+      extends Item(
         displayName = "Iron Ore",
         category = Basic,
         techTier = Foundation,
@@ -55,7 +59,7 @@ enum Resource(
         icon = "ironOre-96.png"
       )
   case ironPlates
-      extends Resource(
+      extends Item(
         displayName = "Iron Plates",
         category = Basic,
         techTier = Foundation,
@@ -63,7 +67,7 @@ enum Resource(
         icon = "ironPlates-96.png"
       )
   case gears
-      extends Resource(
+      extends Item(
         displayName = "Gears",
         category = Basic,
         techTier = Foundation,
@@ -71,7 +75,7 @@ enum Resource(
         icon = "gears-96.png"
       )
   case coal
-      extends Resource(
+      extends Item(
         displayName = "Coal",
         category = Raw,
         techTier = Foundation,
@@ -79,7 +83,7 @@ enum Resource(
         icon = "coal-96.png"
       )
   case coalAsh
-      extends Resource(
+      extends Item(
         displayName = "Coal Ash",
         category = Basic,
         techTier = Foundation,
@@ -87,7 +91,7 @@ enum Resource(
         icon = "coalAsh-96.png"
       )
   case copperOre
-      extends Resource(
+      extends Item(
         displayName = "Copper Ore",
         category = Raw,
         techTier = Foundation,
@@ -95,7 +99,7 @@ enum Resource(
         icon = "copperOre-96.png"
       )
   case copperPlates
-      extends Resource(
+      extends Item(
         displayName = "Copper Plates",
         category = Basic,
         techTier = Foundation,
@@ -103,7 +107,7 @@ enum Resource(
         icon = "copperPlates-96.png"
       )
   case copperCables
-      extends Resource(
+      extends Item(
         displayName = "Copper Cables",
         category = Basic,
         techTier = Foundation,
@@ -111,7 +115,7 @@ enum Resource(
         icon = "copperCables-96.png"
       )
   case redScience
-      extends Resource(
+      extends Item(
         displayName = "Red Science",
         category = Science,
         techTier = Foundation,
@@ -119,7 +123,7 @@ enum Resource(
         icon = "redScience-96.png"
       )
   case steel
-      extends Resource(
+      extends Item(
         displayName = "Steel",
         category = Basic,
         techTier = Steel,
@@ -127,7 +131,7 @@ enum Resource(
         icon = "steel-96.png"
       )
   case quartz
-      extends Resource(
+      extends Item(
         displayName = "Quartz",
         category = Basic,
         techTier = Steel,
@@ -135,7 +139,7 @@ enum Resource(
         icon = "quartz-96.png"
       )
   case silicon
-      extends Resource(
+      extends Item(
         displayName = "Silicon",
         category = Advanced,
         techTier = Steel,
@@ -143,7 +147,7 @@ enum Resource(
         icon = "silicon-96.png"
       )
   case bauxiteOre
-      extends Resource(
+      extends Item(
         displayName = "Bauxite Ore",
         category = Raw,
         techTier = Steel,
@@ -151,7 +155,7 @@ enum Resource(
         icon = "bauxiteOre-96.png"
       )
   case aluminium
-      extends Resource(
+      extends Item(
         displayName = "Aluminium",
         category = Basic,
         techTier = Steel,
@@ -159,15 +163,15 @@ enum Resource(
         icon = "aluminium-96.png"
       )
   case gen1Chip
-      extends Resource(
-        displayName = "Gen1 Chip",
+      extends Item(
+        displayName = "Gen 1 Chip",
         category = Advanced,
         techTier = Gen1,
         order = 1,
         icon = "gen1Chip-96.png"
       )
   case greenScience
-      extends Resource(
+      extends Item(
         displayName = "Green Science",
         category = Science,
         techTier = Gen1,
@@ -175,7 +179,7 @@ enum Resource(
         icon = "greenScience-96.png"
       )
   case oilBarrel
-      extends Resource(
+      extends Item(
         displayName = "Oil Barrel",
         category = Raw,
         techTier = Gen1,
@@ -183,7 +187,7 @@ enum Resource(
         icon = "oilBarrel-96.png"
       )
   case petroleumBarrel
-      extends Resource(
+      extends Item(
         displayName = "Petroleum Barrel",
         category = Basic,
         techTier = Gen1,
@@ -191,7 +195,7 @@ enum Resource(
         icon = "petroleumBarrel-96.png"
       )
   case plastics
-      extends Resource(
+      extends Item(
         displayName = "Plastics",
         category = Basic,
         techTier = Gen1,
@@ -199,7 +203,7 @@ enum Resource(
         icon = "plastics-96.png"
       )
   case sulfur
-      extends Resource(
+      extends Item(
         displayName = "Sulfur",
         category = Basic,
         techTier = Gen1,
@@ -207,7 +211,7 @@ enum Resource(
         icon = "sulfur-96.png"
       )
   case oxygen
-      extends Resource(
+      extends Item(
         displayName = "Oxygen",
         category = Raw,
         techTier = Gen1,
@@ -215,7 +219,7 @@ enum Resource(
         icon = "oxygen-96.png"
       )
   case siliconDioxide
-      extends Resource(
+      extends Item(
         displayName = "Silicon Dioxide",
         category = Advanced,
         techTier = Gen1,
@@ -223,15 +227,15 @@ enum Resource(
         icon = "siliconDioxide-96.png"
       )
   case gen2Chip
-      extends Resource(
-        displayName = "Gen2 Chip",
+      extends Item(
+        displayName = "Gen 2 Chip",
         category = Advanced,
         techTier = Gen2,
         order = 2,
         icon = "gen2Chip-96.png"
       )
   case drone
-      extends Resource(
+      extends Item(
         displayName = "Drone",
         category = Basic,
         techTier = Gen2,
@@ -239,7 +243,7 @@ enum Resource(
         icon = "drone-96.png"
       )
   case blueScience
-      extends Resource(
+      extends Item(
         displayName = "Blue Science",
         category = Science,
         techTier = Gen2,
@@ -247,7 +251,7 @@ enum Resource(
         icon = "blueScience-96.png"
       )
   case phenolicResin
-      extends Resource(
+      extends Item(
         displayName = "Phenolic Resin",
         category = Basic,
         techTier = Gen2,
@@ -255,7 +259,7 @@ enum Resource(
         icon = "phenolicResin-96.png"
       )
   case lowkDielectric
-      extends Resource(
+      extends Item(
         displayName = "Low-k Dielectric",
         category = Advanced,
         techTier = Gen2,
@@ -263,7 +267,7 @@ enum Resource(
         icon = "lowkDielectric-96.png"
       )
   case germanium
-      extends Resource(
+      extends Item(
         displayName = "Germanium",
         category = Advanced,
         techTier = Gen2,
@@ -271,7 +275,7 @@ enum Resource(
         icon = "germanium-96.png"
       )
   case siliconGermanium
-      extends Resource(
+      extends Item(
         displayName = "Silicon Germanium",
         category = Advanced,
         techTier = Gen2,
@@ -279,7 +283,7 @@ enum Resource(
         icon = "siliconGermanium-96.png"
       )
   case hgCopperPlate
-      extends Resource(
+      extends Item(
         displayName = "High-Grade Copper Plate",
         category = Advanced,
         techTier = Gen2,
@@ -287,15 +291,15 @@ enum Resource(
         icon = "hgCopperPlate-96.png"
       )
   case gen3Chip
-      extends Resource(
-        displayName = "Gen3 Chip",
+      extends Item(
+        displayName = "Gen 3 Chip",
         category = Advanced,
         techTier = Gen3,
         order = 6,
         icon = "gen3Chip-96.png"
       )
   case purpleScience
-      extends Resource(
+      extends Item(
         displayName = "Purple Science",
         category = Science,
         techTier = Gen3,
@@ -303,7 +307,7 @@ enum Resource(
         icon = "purpleScience-96.png"
       )
   case hafnium
-      extends Resource(
+      extends Item(
         displayName = "Hafnium",
         category = Raw,
         techTier = Gen3,
@@ -311,7 +315,7 @@ enum Resource(
         icon = "hafnium-96.png"
       )
   case highkDielectric
-      extends Resource(
+      extends Item(
         displayName = "High-k Dielectric",
         category = Advanced,
         techTier = Gen3,
@@ -319,7 +323,7 @@ enum Resource(
         icon = "highkDielectric-96.png"
       )
   case metalGate
-      extends Resource(
+      extends Item(
         displayName = "Metal Gate",
         category = Advanced,
         techTier = Gen3,
@@ -327,15 +331,15 @@ enum Resource(
         icon = "metalGate-96.png"
       )
   case gen4Chip
-      extends Resource(
-        displayName = "Gen4 Chip",
+      extends Item(
+        displayName = "Gen 4 Chip",
         category = Advanced,
         techTier = Gen4,
         order = 10,
         icon = "gen4Chip-96.png"
       )
   case yellowScience
-      extends Resource(
+      extends Item(
         displayName = "Yellow Science",
         category = Science,
         techTier = Gen4,
@@ -343,7 +347,7 @@ enum Resource(
         icon = "yellowScience-96.png"
       )
   case graphene
-      extends Resource(
+      extends Item(
         displayName = "Graphene",
         category = Advanced,
         techTier = Gen4,
@@ -351,7 +355,7 @@ enum Resource(
         icon = "graphene-96.png"
       )
   case hafniumDisulfide
-      extends Resource(
+      extends Item(
         displayName = "Hafnium Disulfide",
         category = Advanced,
         techTier = Gen4,
@@ -359,7 +363,7 @@ enum Resource(
         icon = "hafniumDisulfide-96.png"
       )
   case nanowires
-      extends Resource(
+      extends Item(
         displayName = "Nanowires",
         category = Advanced,
         techTier = Gen4,
@@ -367,7 +371,7 @@ enum Resource(
         icon = "nanowires-96.png"
       )
   case apMaterial
-      extends Resource(
+      extends Item(
         displayName = "AP Material",
         category = Advanced,
         techTier = Gen4,
@@ -375,15 +379,15 @@ enum Resource(
         icon = "apMaterial-96.png"
       )
   case gen5Chip
-      extends Resource(
-        displayName = "Gen5 Chip",
+      extends Item(
+        displayName = "Gen 5 Chip",
         category = Advanced,
         techTier = Gen5,
         order = 15,
         icon = "gen5Chip-96.png"
       )
   case rocketControlUnit
-      extends Resource(
+      extends Item(
         displayName = "Rocket Control Unit",
         category = Advanced,
         techTier = Gen5,
@@ -391,7 +395,7 @@ enum Resource(
         icon = "rocketControlUnit-96.png"
       )
   case fuelCell
-      extends Resource(
+      extends Item(
         displayName = "Fuel Cell",
         category = Advanced,
         techTier = Gen5,
@@ -399,7 +403,7 @@ enum Resource(
         icon = "fuelCell-96.png"
       )
   case lightDensityStructures
-      extends Resource(
+      extends Item(
         displayName = "Light Density Structures",
         category = Advanced,
         techTier = Gen5,
@@ -407,7 +411,7 @@ enum Resource(
         icon = "lightDensityStructures-96.png"
       )
   case rocketParts
-      extends Resource(
+      extends Item(
         displayName = "Rocket Parts",
         category = Science,
         techTier = Gen5,
@@ -415,7 +419,7 @@ enum Resource(
         icon = "rocketParts-96.png"
       )
   case satelite
-      extends Resource(
+      extends Item(
         displayName = "Satellite",
         category = Rocket,
         techTier = Gen5,
@@ -423,7 +427,7 @@ enum Resource(
         icon = "satelite-96.png"
       )
   case whiteScience
-      extends Resource(
+      extends Item(
         displayName = "White Science",
         category = Science,
         techTier = Gen5,
@@ -598,10 +602,9 @@ enum Resource(
    */
 }
 
-case class CountedResource(
-    resource: Resource,
+case class CountedItem(
+    item: Item,
     qty: Double
 )
 
-extension (r: Resource)
-  def *(qty: Double): CountedResource = CountedResource(r, qty)
+extension (i: Item) def *(qty: Double): CountedItem = CountedItem(i, qty)

@@ -4,7 +4,7 @@ import scala.collection.immutable.ListMap
 
 final case class GameState(
                             totalRewards: Int,
-                            skilltree: SkillTree,
+                            skilltree: SaveSkillTree,
                             viewPort: Option[ViewPort],
                             maxParcels: Int,
                             maxClusters: Int,
@@ -38,14 +38,14 @@ final case class GameState(
                             // savedProjects
                             researchData: Seq[(String, Boolean)]
 ) {
-  def throughputLimits: ListMap[Resource, Double] = {
-    Resource.values
+  def throughputLimits: ListMap[Item, Double] = {
+    Item.values
       .map(r => r -> skilltree.maxThroughputFor(r))
       .to(ListMap)
   }
 
-  def prodBoosts: ListMap[Resource, Double] = {
-    Resource.values
+  def prodBoosts: ListMap[Item, Double] = {
+    Item.values
       .map(r => r -> skilltree.specializationBoostFor(r))
       .to(ListMap)
   }
