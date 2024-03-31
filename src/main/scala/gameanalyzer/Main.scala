@@ -1,7 +1,6 @@
 package gameanalyzer
 
 import gameanalyzer.consoleui.Table
-import gameanalyzer.model.Building.remoteConstructionFacility
 import gameanalyzer.model.{
   Building,
   Buildings,
@@ -10,7 +9,6 @@ import gameanalyzer.model.{
   Item,
   Skill
 }
-import cats.implicits.*
 import gameanalyzer.Simulation.SimulationState
 import gameanalyzer.wiki.{
   MediaWikiApi,
@@ -21,10 +19,6 @@ import gameanalyzer.wiki.{
 }
 import cats.implicits.*
 import cats.effect.{ExitCode, IO, IOApp, Resource}
-import cats.Parallel
-
-import java.time.LocalDateTime
-import scala.util.{Failure, Success}
 
 object Main extends IOApp {
   def run(rawArgs: List[String]): IO[ExitCode] =
@@ -39,75 +33,47 @@ object Main extends IOApp {
 
     val apiResource = for {
       creds <- Resource.liftK(WikiCredentials.load(args.credentialsPath))
-      api <- MediaWikiApi.login(creds)
+      api <- MediaWikiApi.login(creds, logActivityToConsole = true)
     } yield api
 
     apiResource.use { api =>
       for {
-        _ <- IO.println(s"Uploading All Items Page") >>
-          api.upsertPage(
-            title = "All Items",
-            newContent = WikiTables.itemsTable
-          )
-        _ <- IO.println(s"Uploading All Buildings Page") >>
-          api.upsertPage(
-            title = "All Buildings",
-            newContent = WikiTables.buildingsTable
-          )
-        _ <- IO.println(s"Uploading All Parcel Types Page") >>
-          api.upsertPage(
-            title = "All Parcel Types",
-            newContent = WikiTables.parcelTypesTable
-          )
-        _ <- IO.println(s"Uploading Skills Tree Page") >>
-          api.upsertPage(
-            title = "Skills Tree",
-            newContent = PageContentMaker.skillTree(gameState.skilltree)
-          )
-        _ <- IO.parTraverseN(200)(Item.ordered)(r =>
-          IO.println(s"Uploading page for Item ${r.displayName}") >>
-            api.upsertPage(
-              title = r.displayName,
-              newContent = PageContentMaker.itemPage(r)
-            ) >> {
-              if r.displayName.equalsIgnoreCase(r.name()) then IO.unit
-              else
-                api.upsertPage(
-                  title = r.name(),
-                  newContent = s"#REDIRECT [[${r.displayName}]]"
-                )
-            }
+        _ <- api.upsertPage(
+          title = "All Items",
+          newContent = WikiTables.itemsTable
         )
-        _ <- IO.parTraverseN(200)(Buildings.ordered)(b =>
-          IO.println(s"Uploading page for ${b.displayName}") >>
-            api.upsertPage(
-              title = b.displayName,
-              newContent = PageContentMaker.buildingPage(b)
-            ) >> {
-              if b.displayName.equalsIgnoreCase(b.name()) then IO.unit
-              else
-                api.upsertPage(
-                  title = b.name(),
-                  newContent = s"#REDIRECT [[${b.displayName}]]"
-                )
-            }
+        _ <- api.upsertPage(
+          title = "All Buildings",
+          newContent = WikiTables.buildingsTable
         )
-        _ <- IO.parTraverseN(200)(Skill.values.toSeq)(s =>
-          IO.println(s"Uploading ${s.displayName}") >>
-            api.upsertPage(
-              title = s.displayName,
-              newContent = PageContentMaker.skillPage(s)
-            ) >>
-            IO.println(
-              s"Uploading Redirect for ${s.toString} => ${s.displayName}"
-            ) >>
-            api.upsertPage(
-              title = s.toString,
-              newContent = s"#REDIRECT [[${s.displayName}]]"
-            )
+        _ <- api.upsertPage(
+          title = "All Parcel Types",
+          newContent = WikiTables.parcelTypesTable
+        )
+        _ <- api.upsertPage(
+          title = "Skills Tree",
+          newContent = PageContentMaker.skillTree(gameState.skilltree)
+        )
+        _ <- IO.parTraverseN(50)(Item.ordered)(r =>
+          api.upsertPage(
+            title = r.displayName,
+            newContent = PageContentMaker.itemPage(r)
+          ) &> api.upsertRedirect(r.name(), r.displayName)
+        )
+        _ <- IO.parTraverseN(50)(Buildings.ordered)(b =>
+          api.upsertPage(
+            title = b.displayName,
+            newContent = PageContentMaker.buildingPage(b)
+          ) &> api.upsertRedirect(b.name(), b.displayName)
+        )
+        _ <- IO.parTraverseN(50)(Skill.values.toSeq)(s =>
+          api.upsertPage(
+            title = s.displayName,
+            newContent = PageContentMaker.skillPage(s)
+          ) &> api.upsertRedirect(s.toString, s.displayName)
         )
 //        _ <- dumpSkillsToConsole
-        _ <- dumpSummariesToConsole(gameState, args)
+//        _ <- dumpSummariesToConsole(gameState, args)
 //        _ <- dumpWikiTablesToConsole
       } yield ExitCode.Success
 
@@ -155,32 +121,6 @@ object Main extends IOApp {
         _ <- IO.println(PageContentMaker.skillPage(s))
       } yield ()
     ).flatMap(_ => IO.unit)
-
-  def mainPageWikiMarkup(gameState: GameState): String = {
-    s"""
-       ~
-       ~ {{:About The Game}}
-       ~
-       ~== Items ==
-       ~
-       ~${WikiTables.itemsTable}
-       ~
-       ~== Buildings ==
-       ~
-       ~${WikiTables.buildingsTable}
-       ~
-       ~== Parcels ==
-       ~
-       ~${WikiTables.parcelTypesTable}
-       ~
-       ~== Skills ==
-       ~
-       ~${PageContentMaker.skillTree(gameState.skilltree)}
-       ~
-       ~This page was generated by a bot on ${LocalDateTime.now()}
-       ~
-       ~""".stripMargin('~')
-  }
 
   def printDeficitParcels(simState: Simulation.SimulationState): Unit = {
     simState.parcels

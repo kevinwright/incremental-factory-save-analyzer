@@ -33,17 +33,21 @@ def asIO: ResponseAs[IO[String]] =
 class MediaWikiApi private (
     backend: Backend[IO],
     val tokens: WikiTokens,
-    requestor: PartialRequest[Either[String, String]]
+    requestor: PartialRequest[Either[String, String]],
+    logActivityToConsole: Boolean
 ) {
+  def logAction(str: String): IO[Unit] =
+    if logActivityToConsole then IO.println(str) else IO.unit
+
   def getPage(title: String): IO[WikiPage] =
-    requestor
+    logAction(s"Getting Page $title") >> requestor
       .get(restEndpoint / "page" / title)
       .response(ioFromJson[WikiPage])
       .send(backend)
       .flatMap(_.body)
 
   def createPage(content: WikiPage): IO[WikiPage] =
-    requestor
+    logAction(s"Creating Page ${content.title}") >> requestor
       .body(writeToString(content))
       .post(restEndpoint / "page")
       .response(ioFromJson[WikiPage])
@@ -51,23 +55,28 @@ class MediaWikiApi private (
       .flatMap(_.body)
 
   def updatePage(content: WikiPage): IO[WikiPage] =
-    requestor
+    logAction(s"Updating Page ${content.title}") >> requestor
       .body(writeToString(content))
       .put(restEndpoint / "page" / content.title)
       .response(ioFromJson[WikiPage])
       .send(backend)
       .flatMap(_.body)
 
-  def upsertPage(title: String, newContent: String): IO[WikiPage] = {
+  def upsertPage(title: String, newContent: String): IO[Unit | WikiPage] = {
     getPage(title)
       .flatMap(existing =>
-        updatePage(
-          existing.copy(
-            source = newContent,
-            comment = Some("Updated by a bot"),
-            token = Some(tokens.csrftoken)
-          )
-        )
+        if existing.source.trim == newContent.trim then
+          logAction(s"Won't update $title, content is unchanged")
+        else {
+          logAction(s"Upserting Page $title") >>
+            updatePage(
+              existing.copy(
+                source = newContent,
+                comment = Some("Updated by a bot"),
+                token = Some(tokens.csrftoken)
+              )
+            )
+        }
       )
       .recoverWith(_ =>
         createPage(
@@ -80,6 +89,17 @@ class MediaWikiApi private (
           )
         )
       )
+  }
+
+  def upsertRedirect(title: String, target: String): IO[Unit | WikiPage] = {
+    if title.equalsIgnoreCase(target)
+    then logAction(s"Invalid Redirect $title => $target")
+    else {
+      logAction(s"Upserting Redirect $title => $target") >> upsertPage(
+        title = title,
+        newContent = s"#REDIRECT [[target]]"
+      )
+    }
   }
 }
 
@@ -137,7 +157,10 @@ object MediaWikiApi {
     } yield cookies
   }
 
-  def login(credentials: WikiCredentials): Resource[IO, MediaWikiApi] = {
+  def login(
+      credentials: WikiCredentials,
+      logActivityToConsole: Boolean
+  ): Resource[IO, MediaWikiApi] = {
     val requestor = (credentials.basicUser, credentials.basicPass) match {
       case (Some(u), Some(p)) => basicRequest.auth.basic(u, p)
       case _                  => basicRequest
@@ -163,7 +186,8 @@ object MediaWikiApi {
         tokens = tokens,
         requestor = requestor
           .cookies(cookies)
-          .contentType(MediaType.ApplicationJson)
+          .contentType(MediaType.ApplicationJson),
+        logActivityToConsole = logActivityToConsole
       )
     }
   }
