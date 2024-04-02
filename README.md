@@ -36,6 +36,10 @@ To publish to the wiki you'll need a credentials file. For wiki.gg use this temp
     rest-path=rest.php/v1
     api-path=api.php
 
+**DO NOT** badger people for wiki.gg credentials whilst that site is not
+yet publicly open. First demonstrate on fandom that you're willing and able
+to make a meaningful contribution.
+
 For fandom:
 
     wiki-user=<YourName>@<botname>
