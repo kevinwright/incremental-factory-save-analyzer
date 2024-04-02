@@ -3,8 +3,7 @@ package incremental.wiki
 import com.github.plokhotnyuk.jsoniter_scala.core.*
 import cats.effect.{IO, Resource}
 import sttp.client4.*
-import sttp.model.Uri
-import sttp.model.MediaType
+import sttp.model.{MediaType, ResponseMetadata, StatusCode, Uri}
 import sttp.model.headers.CookieWithMeta
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
 
@@ -13,21 +12,30 @@ import sttp.client4.httpclient.cats.HttpClientCatsBackend
 //val restEndpoint = uri"https://incrementalfactory.wiki.gg/rest.php/v1"
 //val apiEndpoint = uri"https://incrementalfactory.wiki.gg/api.php"
 
+case class WikiException(
+    message: String,
+    meta: ResponseMetadata
+) extends RuntimeException(message) {
+  def isRateLimited: Boolean = meta.code == StatusCode.TooManyRequests
+}
+
 extension (uri: Uri) {
   def /(part: String): Uri =
     uri.addPath(part)
 }
 
 def ioFromJson[A: JsonValueCodec]: ResponseAs[IO[A]] =
-  asByteArray.map {
-    case Left(err)  => IO.raiseError(RuntimeException(err))
-    case Right(buf) => IO(readFromArray(buf))
+  asByteArray.mapWithMetadata {
+    case (Left(err), meta) => IO.raiseError(WikiException(err, meta))
+    case (Right(buf), _)   => IO(readFromArray(buf))
   }
 
 def asIO: ResponseAs[IO[String]] =
-  asString.map {
-    case Left(err)  => IO.raiseError(RuntimeException(err))
-    case Right(str) => IO.pure(str)
+  asString.mapWithMetadata {
+    case (Left(err), meta) =>
+      meta.code
+      IO.raiseError(WikiException(err, meta))
+    case (Right(str), _) => IO.pure(str)
   }
 
 class MediaWikiApi private (

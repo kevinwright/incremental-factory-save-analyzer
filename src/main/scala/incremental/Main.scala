@@ -35,7 +35,7 @@ object Main
   } yield ExitCode.Success
 
   def publishWiki(args: PublishWiki.ParsedArgs): IO[ExitCode] = for {
-    _ <- WikiGen.run(args)
+    _ <- WikiGen(args).run()
   } yield ExitCode.Success
 
   def dumpSummariesToConsole(

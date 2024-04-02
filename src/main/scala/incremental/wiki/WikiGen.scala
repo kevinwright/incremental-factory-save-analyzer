@@ -1,22 +1,44 @@
 package incremental.wiki
 
+import cats.implicits.given
+import cats.Traverse
 import cats.effect.{ExitCode, IO, Resource}
 import incremental.commands.PublishWiki
 import incremental.model.{Buildings, Item, ParcelType}
 import incremental.model.skills.Skill
 
-import java.nio.file.Path
-import scala.util.Random
-import scala.concurrent.duration.given
+import scala.concurrent.duration.{FiniteDuration, given}
 
-object WikiGen {
-  
+class WikiGen(args: PublishWiki.ParsedArgs) {
+
+  def parallelism: Int = 200
+
+  def retryOnRateLimit[A](
+      ioa: IO[A],
+      initialDelay: FiniteDuration,
+      maxRetries: Int
+  ): IO[A] =
+    ioa.recoverWith {
+      case err: WikiException if err.isRateLimited && maxRetries > 0 =>
+        IO.sleep(initialDelay) *> retryOnRateLimit(
+          ioa,
+          initialDelay * 2,
+          maxRetries - 1
+        )
+      case err => IO.raiseError(err)
+    }
+
+  def processBlock[T[_]: Traverse, A](ta: T[A])(fn: A => IO[Any]): IO[Unit] =
+    IO.parTraverseN(parallelism)(ta)(a =>
+      retryOnRateLimit(fn(a), initialDelay = 10.seconds, maxRetries = 10)
+    ).as(())
+
   extension (io: IO[Any]) {
     def when(condition: Boolean): IO[Unit] =
       if condition then io.as(()) else IO.unit
   }
-  
-  def run(args: PublishWiki.ParsedArgs): IO[ExitCode] = {
+
+  def run(): IO[ExitCode] = {
     val apiResource = for {
       creds <- Resource.liftK(WikiCredentials.load(args.credentialsPath))
       api <- MediaWikiApi.login(creds, logActivityToConsole = true)
@@ -43,39 +65,36 @@ object WikiGen {
   } yield ()
 
   private def upsertItemPages(api: MediaWikiApi): IO[Unit] =
-    IO.parTraverseN(5)(Item.ordered)(r =>
+    processBlock(Item.ordered)(r =>
       api.upsertPage(
         title = r.displayName,
         newContent = PageContentMaker.itemPage(r)
       ) >> api.upsertRedirect(r.name(), r.displayName)
-    ).as(())
+    )
 
   private def upsertBuildingPages(api: MediaWikiApi): IO[Unit] =
-    IO.parTraverseN(5)(Buildings.ordered)(b =>
-      IO.sleep(Random.between(0, 2).seconds) >>
-        api.upsertPage(
-          title = b.displayName,
-          newContent = PageContentMaker.buildingPage(b)
-        ) >> api.upsertRedirect(b.name(), b.displayName)
-    ).as(())
+    processBlock(Buildings.ordered)(b =>
+      api.upsertPage(
+        title = b.displayName,
+        newContent = PageContentMaker.buildingPage(b)
+      ) >> api.upsertRedirect(b.name(), b.displayName)
+    )
 
   private def upsertSkillPages(api: MediaWikiApi): IO[Unit] =
-    IO.parTraverseN(1)(Skill.values.toSeq)(s =>
-      IO.sleep(Random.between(0, 2).seconds) >>
-        api.upsertPage(
-          title = s.displayName,
-          newContent = PageContentMaker.skillPage(s)
-        ) >> api.upsertRedirect(s.toString, s.displayName)
-    ).as(())
+    processBlock(Skill.values.toSeq)(s =>
+      api.upsertPage(
+        title = s.displayName,
+        newContent = PageContentMaker.skillPage(s)
+      ) >> api.upsertRedirect(s.toString, s.displayName)
+    )
 
   private def upsertParcelTypePages(api: MediaWikiApi): IO[Unit] =
-    IO.parTraverseN(1)(ParcelType.values.toSeq)(pt =>
-      IO.sleep(Random.between(0, 2).seconds) >>
-        api.upsertPage(
-          title = pt.displayName,
-          newContent = PageContentMaker.parcelTypePage(pt)
-        ) >> api.upsertRedirect(pt.toString, pt.displayName)
-    ).as(())
+    processBlock(ParcelType.values.toSeq)(pt =>
+      api.upsertPage(
+        title = pt.displayName,
+        newContent = PageContentMaker.parcelTypePage(pt)
+      ) >> api.upsertRedirect(pt.toString, pt.displayName)
+    )
 
   def dumpWikiTablesToConsole: IO[Unit] =
     for {
@@ -88,10 +107,12 @@ object WikiGen {
     } yield ()
 
   def dumpSkillsPagesToConsole: IO[Unit] =
-    IO.parTraverseN(10)(Skill.values.toSeq)(s =>
-      for {
-        _ <- IO.println(s.displayName)
-        _ <- IO.println(PageContentMaker.skillPage(s))
-      } yield ()
-    ).flatMap(_ => IO.unit)
+    Skill.values.toSeq
+      .traverse(s =>
+        for {
+          _ <- IO.println(s.displayName)
+          _ <- IO.println(PageContentMaker.skillPage(s))
+        } yield ()
+      )
+      .as(())
 }

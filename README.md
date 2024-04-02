@@ -2,16 +2,14 @@
 
 This app is written in FP-style Scala, this is non-negotiable.
 
-Setup
------
+## Setup
 
 To run, first install SBT (use SDKMan for this on MacOS or Linux).
 Then launch the console via `sbt`
 
 It makes two commands available
 
-Save Analysis
--------------
+## Save Analysis
 
     run analyse-save-file --intent all classpath:/savegame-reference.json
 
@@ -23,8 +21,7 @@ e.g.
 
     -i b -i r
 
-Wiki Publishing
----------------
+## Wiki Publishing
 
 To publish to the wiki you'll need a credentials file. For wiki.gg use this template:
 
@@ -60,6 +57,10 @@ The command (inside the SBT console) is then
 
 The intent options here are `main`, `items`, `buildings`, `parceltypes`, `skills`,  and `all`
 
-If you try to do too much on fandom in one go it **WILL** crash with a timeout exception,
-as fandom specifies very low rates for even administrators. Retry logic is next on
-my list of things to add.
+### Rate-Limiting
+
+Unless running as an administrator, fandom has some harsh rate-limiting in place.
+
+Early versions of this app would frequently crash with a timeout exception.
+It now has a mechanism in place to retry if it runs into a rate limit, but
+as an administrator I'm not able to test this effectively.
