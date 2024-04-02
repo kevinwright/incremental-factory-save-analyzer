@@ -7,10 +7,7 @@ import sttp.model.{MediaType, ResponseMetadata, StatusCode, Uri}
 import sttp.model.headers.CookieWithMeta
 import sttp.client4.httpclient.cats.HttpClientCatsBackend
 
-//import scala.util.{Failure, Success, Try}
-
-//val restEndpoint = uri"https://incrementalfactory.wiki.gg/rest.php/v1"
-//val apiEndpoint = uri"https://incrementalfactory.wiki.gg/api.php"
+import scala.concurrent.duration.{FiniteDuration, given}
 
 case class WikiException(
     message: String,
@@ -18,6 +15,21 @@ case class WikiException(
 ) extends RuntimeException(message) {
   def isRateLimited: Boolean = meta.code == StatusCode.TooManyRequests
 }
+
+def retryOnRateLimit[A](
+    ioa: IO[A],
+    initialDelay: FiniteDuration = 10.seconds,
+    maxRetries: Int = 10
+): IO[A] =
+  ioa.recoverWith {
+    case err: WikiException if err.isRateLimited && maxRetries > 0 =>
+      IO.sleep(initialDelay) *> retryOnRateLimit(
+        ioa,
+        initialDelay * 2,
+        maxRetries - 1
+      )
+    case err => IO.raiseError(err)
+  }
 
 extension (uri: Uri) {
   def /(part: String): Uri =

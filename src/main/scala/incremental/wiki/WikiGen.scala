@@ -4,40 +4,18 @@ import cats.implicits.given
 import cats.Traverse
 import cats.effect.{ExitCode, IO, Resource}
 import incremental.commands.PublishWiki
-import incremental.model.{Buildings, Item, ParcelType}
-import incremental.model.skills.Skill
+import incremental.model.*
+import incremental.model.skills.{Skill, Skills}
 
-import scala.concurrent.duration.{FiniteDuration, given}
+extension (io: IO[Any]) {
+  def when(condition: Boolean): IO[Unit] =
+    if condition then io.as(()) else IO.unit
+}
 
-class WikiGen(args: PublishWiki.ParsedArgs) {
-
-  def parallelism: Int = 200
-
-  def retryOnRateLimit[A](
-      ioa: IO[A],
-      initialDelay: FiniteDuration,
-      maxRetries: Int
-  ): IO[A] =
-    ioa.recoverWith {
-      case err: WikiException if err.isRateLimited && maxRetries > 0 =>
-        IO.sleep(initialDelay) *> retryOnRateLimit(
-          ioa,
-          initialDelay * 2,
-          maxRetries - 1
-        )
-      case err => IO.raiseError(err)
-    }
-
-  def processBlock[T[_]: Traverse, A](ta: T[A])(fn: A => IO[Any]): IO[Unit] =
-    IO.parTraverseN(parallelism)(ta)(a =>
-      retryOnRateLimit(fn(a), initialDelay = 10.seconds, maxRetries = 10)
-    ).as(())
-
-  extension (io: IO[Any]) {
-    def when(condition: Boolean): IO[Unit] =
-      if condition then io.as(()) else IO.unit
-  }
-
+class WikiGen(
+    args: PublishWiki.ParsedArgs,
+    parallelism: Int = 200
+) {
   def run(): IO[ExitCode] = {
     val apiResource = for {
       creds <- Resource.liftK(WikiCredentials.load(args.credentialsPath))
@@ -47,10 +25,10 @@ class WikiGen(args: PublishWiki.ParsedArgs) {
     apiResource.use { api =>
       for {
         _ <- upsertMainPages(api).when(args.publishMain)
-        _ <- upsertItemPages(api).when(args.publishItems)
-        _ <- upsertBuildingPages(api).when(args.publishBuildings)
-        _ <- upsertSkillPages(api).when(args.publishSkills)
-        _ <- upsertParcelTypePages(api).when(args.publishParcelTypes)
+        _ <- upsertPages(api, Item.ordered).when(args.publishItems)
+        _ <- upsertPages(api, Buildings.ordered).when(args.publishBuildings)
+        _ <- upsertPages(api, Skills.ordered).when(args.publishSkills)
+        _ <- upsertPages(api, ParcelTypes.ordered).when(args.publishParcelTypes)
 //        _ <- dumpWikiTablesToConsole
 //        _ <- dumpSkillsPagesToConsole
       } yield ExitCode.Success
@@ -64,36 +42,20 @@ class WikiGen(args: PublishWiki.ParsedArgs) {
     _ <- api.upsertPage("Skills Tree", PageContentMaker.skillTree())
   } yield ()
 
-  private def upsertItemPages(api: MediaWikiApi): IO[Unit] =
-    processBlock(Item.ordered)(r =>
+  private def parallellise[T[_] : Traverse, A](ta: T[A])(fn: A => IO[Any]): IO[Unit] =
+    IO.parTraverseN(parallelism)(ta)(a =>
+      retryOnRateLimit(fn(a))
+    ).as(())
+    
+  private def upsertPages[T[_]: Traverse, A: PageSource](
+      api: MediaWikiApi,
+      ta: T[A]
+  ): IO[Unit] =
+    parallellise(ta)(a =>
       api.upsertPage(
-        title = r.displayName,
-        newContent = PageContentMaker.itemPage(r)
-      ) >> api.upsertRedirect(r.name(), r.displayName)
-    )
-
-  private def upsertBuildingPages(api: MediaWikiApi): IO[Unit] =
-    processBlock(Buildings.ordered)(b =>
-      api.upsertPage(
-        title = b.displayName,
-        newContent = PageContentMaker.buildingPage(b)
-      ) >> api.upsertRedirect(b.name(), b.displayName)
-    )
-
-  private def upsertSkillPages(api: MediaWikiApi): IO[Unit] =
-    processBlock(Skill.values.toSeq)(s =>
-      api.upsertPage(
-        title = s.displayName,
-        newContent = PageContentMaker.skillPage(s)
-      ) >> api.upsertRedirect(s.toString, s.displayName)
-    )
-
-  private def upsertParcelTypePages(api: MediaWikiApi): IO[Unit] =
-    processBlock(ParcelType.values.toSeq)(pt =>
-      api.upsertPage(
-        title = pt.displayName,
-        newContent = PageContentMaker.parcelTypePage(pt)
-      ) >> api.upsertRedirect(pt.toString, pt.displayName)
+        title = a.title,
+        newContent = a.mkContent
+      ) >> a.redirectTitles.traverse(alt => api.upsertRedirect(alt, a.title))
     )
 
   def dumpWikiTablesToConsole: IO[Unit] =

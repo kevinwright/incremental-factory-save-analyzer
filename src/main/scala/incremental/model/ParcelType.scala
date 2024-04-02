@@ -1,5 +1,10 @@
 package incremental.model
 
+object ParcelTypes {
+  def ordered: Seq[ParcelType] =
+    ParcelType.values.toSeq.sortBy(_.ordinal)
+}
+
 enum ParcelType(
     val displayName: String,
     baseConnections: Int,
