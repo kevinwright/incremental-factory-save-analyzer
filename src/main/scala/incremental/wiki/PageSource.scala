@@ -33,6 +33,17 @@ given PageSource[Skill] with
 given PageSource[ParcelType] with
   extension (x: ParcelType)
     def title: String = x.displayName
-    def redirectTitles: Seq[String] =
-      Seq(x.name()).filterNot(_ equalsIgnoreCase title)
+    def redirectTitles: Seq[String] = Nil
     def mkContent: String = PageContentMaker.parcelTypePage(x)
+
+given PageSource[SimpleResearch] with
+  extension (x: SimpleResearch)
+    def title: String = x.wikiTitle
+    def redirectTitles: Seq[String] = Nil
+    def mkContent: String = PageContentMaker.simpleResearchPage(x)
+
+given PageSource[CompoundResearch] with
+  extension (x: CompoundResearch)
+    def title: String = x.wikiTitle
+    def redirectTitles: Seq[String] = Nil
+    def mkContent: String = "TBD"

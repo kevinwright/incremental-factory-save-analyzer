@@ -30,15 +30,15 @@ object Buildings {
 }
 
 enum Building(
-               val displayName: String,
-               val category: BuildingCategory,
-               val techTier: TechTier,
-               val cost: Set[CountedItem],
-               val inputs: Set[CountedItem],
-               val outputs: Set[CountedItem],
-               val netEnergy: Double,
-               val minable: Boolean,
-               val description: String
+    val displayName: String,
+    val category: BuildingCategory,
+    val techTier: TechTier,
+    val cost: Set[CountedItem],
+    val inputs: Set[CountedItem],
+    val outputs: Set[CountedItem],
+    val netEnergy: Double,
+    val minable: Boolean,
+    val description: String
 ) extends Enum[Building] {
 
   def mainOutput: CountedItem = outputs.headOption match {

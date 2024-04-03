@@ -14,7 +14,7 @@ enum Skill(
     val displayName: String,
     val affectedItems: Seq[Item] = Nil,
     val levelDescriptors: SkillLevelDescriptor,
-    val unlocks: Option[Any] = None,
+    val unlocks: Unlock = NoUnlock,
     lazyConnectedNodes: () => Set[Skill] = () => Set.empty
 ) {
 
@@ -120,7 +120,7 @@ enum Skill(
       extends Skill(
         category = Unlock,
         displayName = "Start with Advanced Parcel Unlocked",
-        unlocks = Some(ParcelType.advanced),
+        unlocks = UnlockParcelType(ParcelType.advanced),
         levelDescriptors = SingleLevel(cost = 20),
         lazyConnectedNodes = () =>
           Set(
@@ -132,7 +132,7 @@ enum Skill(
       extends Skill(
         category = Unlock,
         displayName = "Start with Large Parcel Unlocked",
-        unlocks = Some(ParcelType.large),
+        unlocks = UnlockParcelType(ParcelType.large),
         levelDescriptors = SingleLevel(cost = 25),
         lazyConnectedNodes = () =>
           Set(
@@ -144,7 +144,7 @@ enum Skill(
       extends Skill(
         category = Unlock,
         displayName = "Start with Node Parcel Unlocked",
-        unlocks = Some(ParcelType.node),
+        unlocks = UnlockParcelType(ParcelType.node),
         levelDescriptors = SingleLevel(cost = 30),
         lazyConnectedNodes = () =>
           Set(
@@ -156,7 +156,7 @@ enum Skill(
       extends Skill(
         category = Unlock,
         displayName = "Start with Hi-Tech Parcel Unlocked",
-        unlocks = Some(ParcelType.hitech),
+        unlocks = UnlockParcelType(ParcelType.hitech),
         levelDescriptors = SingleLevel(cost = 35)
       )
 

@@ -8,14 +8,18 @@ import cats.data.{
   ValidatedNel
 }
 import com.monovore.decline.*
-import com.monovore.decline.effect.*
 import cats.implicits.*
 import cats.kernel.Order
-import incremental.commands.AnalyseSaveFile.Intent
 
 import java.nio.file.Path
 
 object PublishWiki {
+  enum Intent {
+    case main, items, buildings, parceltypes, skills, research, all
+  }
+
+  given Order[Intent] = Order.by((_: Intent).ordinal)
+
   case class ParsedArgs(
       intentions: NonEmptySet[Intent],
       credentialsPath: Path
@@ -26,15 +30,10 @@ object PublishWiki {
     def publishBuildings = publishAll || intentions.contains(Intent.buildings)
     def publishParcelTypes =
       publishAll || intentions.contains(Intent.parceltypes)
+    def publishResearch =
+      publishAll || intentions.contains(Intent.research)
     def publishSkills = publishAll || intentions.contains(Intent.skills)
-
   }
-
-  enum Intent {
-    case main, items, buildings, parceltypes, skills, all
-  }
-
-  given Order[Intent] = Order.by((_: Intent).ordinal)
 
   given Argument[Intent] with {
     def read(string: String): ValidatedNel[String, Intent] = {

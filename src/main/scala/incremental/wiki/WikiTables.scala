@@ -1,7 +1,7 @@
 package incremental.wiki
 
 import incremental.WikiFormatter
-import incremental.model.{Building, ParcelType, Item}
+import incremental.model.*
 
 object WikiTables {
 
@@ -33,9 +33,8 @@ object WikiTables {
     mkTable(
       Seq("Item", "Category", "Order", "Unlocks<br>With"),
       Seq("left", "left", "right", "left"),
-      Item.values
+      Item.ordered
         .filterNot(_ == Item.nullItem)
-        .sortBy(_.ordinal)
         .map(r =>
           Seq(
             defaultFormatter.formatItem(r),
@@ -51,7 +50,7 @@ object WikiTables {
     mkTable(
       Seq("Building", "Output", "Category", "Energy", "Unlocks<br>With"),
       Seq("left", "left", "left", "right", "left"),
-      Building.values
+      Buildings.ordered
         .filterNot(_ == Building.testBuilding)
         .sortBy(b => (b.techTier.ordinal, b.ordinal))
         .map(b =>
@@ -79,7 +78,7 @@ object WikiTables {
           |! style="text-align: centre;" | Storage
           |""".stripMargin
 
-    val rows = ParcelType.values.map { pt =>
+    val rows = ParcelTypes.ordered.map { pt =>
       s"""
           ||-
           || style="text-align: left;" | [[${pt.displayName}]]
@@ -92,4 +91,17 @@ object WikiTables {
     val endTable = "|}\n"
     rows.mkString(preamble, "", endTable)
   }
+
+  def simpleResearchesTable: String =
+    mkTable(
+      Seq("Name", "Unlocks"),
+      Seq("left", "left"),
+      SimpleResearch.ordered
+        .map(x =>
+          Seq(
+            s"[[${x.wikiTitle}]]",
+            defaultFormatter.formatUnlocks(x.unlocks)
+          )
+        )
+    )
 }

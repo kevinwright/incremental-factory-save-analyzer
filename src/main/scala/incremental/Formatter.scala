@@ -2,6 +2,8 @@ package incremental
 
 import incremental.model.*
 
+import scala.runtime.Nothing$
+
 sealed trait Formatter {
   def formatBuilding(b: Building): String
   def formatItem(i: Item): String
@@ -73,5 +75,15 @@ case class WikiFormatter(
     val qty = formatNumber(ci.qty)
     val link = itemComboLink(ci.item)
     s"{{Nowrap|$qty  × $link}}"
+  }
+
+  def formatUnlocks(u: Unlock): String = u match {
+    case NoUnlock             => "Nothing"
+    case UnlockParcelType(pt) => s"[[${pt.displayName}]]"
+    case UnlockAbility(s)     => s
+    case ub: UnlockBuildings =>
+      formatCommaList(
+        ub.seq.toList.map(buildingTextLink)
+      )
   }
 }

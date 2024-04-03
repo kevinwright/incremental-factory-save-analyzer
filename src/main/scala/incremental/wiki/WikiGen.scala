@@ -29,7 +29,9 @@ class WikiGen(
         _ <- upsertPages(api, Buildings.ordered).when(args.publishBuildings)
         _ <- upsertPages(api, Skills.ordered).when(args.publishSkills)
         _ <- upsertPages(api, ParcelTypes.ordered).when(args.publishParcelTypes)
-//        _ <- dumpWikiTablesToConsole
+        _ <- upsertPages(api, SimpleResearch.ordered).when(args.publishResearch)
+
+        //        _ <- dumpWikiTablesToConsole
 //        _ <- dumpSkillsPagesToConsole
       } yield ExitCode.Success
     }
@@ -40,6 +42,8 @@ class WikiGen(
     _ <- api.upsertPage("All Buildings", WikiTables.buildingsTable)
     _ <- api.upsertPage("All Parcel Types", WikiTables.parcelTypesTable)
     _ <- api.upsertPage("Skills Tree", PageContentMaker.skillTree())
+    _ <- api.upsertPage("Researches", WikiTables.simpleResearchesTable)
+
   } yield ()
 
   private def parallellise[T[_] : Traverse, A](ta: T[A])(fn: A => IO[Any]): IO[Unit] =
