@@ -23,10 +23,10 @@ case class Cell(
 
 /** Special case because auto-tupling doesn't work on a single param
   */
-//inline def cells[T](inline t: T)(using
-//    conv: Conversion[T, Content]
-//): Tuple1[Cell] =
-//  Tuple1(Cell(conv(t)))
+inline def cells[T](inline t: T)(using
+    conv: Conversion[T, Content]
+): Tuple1[Cell] =
+  Tuple1(Cell(conv(t)))
 
 inline def cells[Tup <: NonEmptyTuple](
     inline tup: Tup
@@ -41,11 +41,11 @@ inline def cells_Untyped[Tup <: NonEmptyTuple](
 given [T](using conv: Conversion[T, Content]): Conversion[T, Cell] with
   def apply(t: T): Cell = Cell(conv(t))
 
-case class TableDef[
-    ColsTupleT <: NonEmptyTuple
+class TableDef[
+    WidthT <: Int
 ](
-    columnDefs: ColsTupleT
-)(using HomogenousAux[ColumnDef, ColsTupleT]) {
+    columnDefs: RepeatNonEmpty[WidthT, ColumnDef]
+) {
 
   // If this alias is actually used in `reify` and `build` then we get errors like
   //   Found: (incremental.layout.Cell, incremental.layout.Cell)
@@ -56,64 +56,63 @@ case class TableDef[
   //   Required: (incremental.layout.Cell, incremental.layout.Cell, incremental.layout.Cell)
   //
   // So it's best to only use this alias externally
-  type RowsTupleT = SameSizeAs[ColsTupleT, Cell]
+  type RowsTupleT = RepeatNonEmpty[WidthT, Cell]
 
   val columnDefList =
     NonEmptyList(columnDefs.head, columnDefs.tail.toList)
       .asInstanceOf[NonEmptyList[ColumnDef]]
 
   def reify(
-      rows: Seq[SameSizeAs[ColsTupleT, Cell]]
-  ): Table[ColsTupleT, SameSizeAs[ColsTupleT, Cell]] =
-    Table(this, rows)
+      rows: Seq[RepeatNonEmpty[WidthT, Cell]]
+  ): Table[WidthT] = Table(this, rows)
 
   def build[
       T,
       ValueRowT <: NonEmptyTuple
   ](
       source: IterableOnce[T],
-      rowFn: T => SameSizeAs[ColsTupleT, Cell]
-  ): Table[ColsTupleT, SameSizeAs[ColsTupleT, Cell]] = Table(
+      rowFn: T => RepeatNonEmpty[WidthT, Cell]
+  ): Table[WidthT] = Table(
     this,
     source.iterator.map(rowFn).toSeq
   )
 }
 
 case class Table[
-    ColsTupleT <: NonEmptyTuple: Homogenous[ColumnDef],
-    RowsTupleT <: SameSizeAs[ColsTupleT, Cell]
+    WidthT <: Int
 ](
-    tableDef: TableDef[ColsTupleT],
-    rows: Seq[RowsTupleT]
+    tableDef: TableDef[WidthT],
+    rows: Seq[RepeatNonEmpty[WidthT, Cell]]
 )
 
 object TableDef {
+  def apply[
+    Tup <: NonEmptyTuple : Homogenous[ColumnDef],
+    WidthT <: Tuple.Size[Tup]
+  ](
+      columnDefs: Tup
+  ): TableDef[WidthT] =
+    new TableDef[WidthT](
+      columnDefs.asInstanceOf[RepeatNonEmpty[WidthT, ColumnDef]]
+    )
 
   val tableDef = TableDef(
-    columnDefs = (
-      ColumnDef(title = "a", alignment = left),
-      ColumnDef(title = "b", alignment = right),
-      ColumnDef(title = "c", alignment = right)
-    )
+    ColumnDef(title = "a", alignment = left),
+    ColumnDef(title = "b", alignment = right),
+    ColumnDef(title = "c", alignment = right)
   )
 
   val oneRow = cells(
     Cell("1"),
-    Cell("2"),
+    "2",
     Cell("3")
   )
 
   val testReify = tableDef.reify(Seq(oneRow))
 
-
   val testBuild = tableDef.build(
     Seq(1, 2, 3),
-    value =>
-      (
-        Cell(s"a$value"),
-        Cell(s"b$value"),
-        Cell(s"c$value")
-      )
+    value => cells(s"a$value", s"b$value", s"c$value")
   )
 
   def main(args: Array[String]): Unit = {

@@ -1,5 +1,7 @@
 package incremental.layout
 
+import incremental.layout.LayoutMacros.Repeat
+
 import scala.quoted.*
 import scala.compiletime.*
 import compiletime.ops.int.*
@@ -12,6 +14,11 @@ object LayoutMacros {
   }
 
   type Homogenous[H] = [T <: Tuple] =>> HomogenousAux[H, T]
+
+  type RepeatNonEmpty[N <: Int, T] <: NonEmptyTuple = Repeat[N, T] match {
+    case EmptyTuple => Nothing
+    case h *: t => h *: t
+  }
 
   type Repeat[N <: Int, T] <: Tuple = N match {
     case 0     => EmptyTuple
