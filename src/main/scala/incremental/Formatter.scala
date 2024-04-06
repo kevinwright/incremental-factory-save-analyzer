@@ -82,8 +82,6 @@ case class WikiFormatter(
     case UnlockParcelType(pt) => s"[[${pt.displayName}]]"
     case UnlockAbility(s)     => s
     case ub: UnlockBuildings =>
-      formatCommaList(
-        ub.seq.toList.map(buildingTextLink)
-      )
+      ub.seq.toList.map(buildingComboLink).mkString("<br>\n")
   }
 }

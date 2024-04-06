@@ -23,6 +23,14 @@ libraryDependencies ++= Seq(
   "com.github.plokhotnyuk.jsoniter-scala" %% "jsoniter-scala-macros" % "2.28.4" % "provided"
 )
 
+scalacOptions ++= Seq(
+  "-encoding",
+  "utf8",
+  "-feature",
+  "-deprecation",
+  "-Werror"
+)
+
 // defaults set with common options shown
 //nativeConfig ~= { c =>
 //  c.withLTO(LTO.none) // thin

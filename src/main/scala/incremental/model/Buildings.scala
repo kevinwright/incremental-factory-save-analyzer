@@ -10,7 +10,9 @@ import TechTier.*
 
 object Buildings {
   def ordered: Seq[Building] =
-    Building.values.sortBy(_.ordinal()).filterNot(_ == Building.testBuilding)
+    Building.values.toSeq
+      .sortBy(_.ordinal())
+      .filterNot(_ == Building.testBuilding)
 
   def allBuiltUsing(item: Item): Seq[Building] =
     ordered

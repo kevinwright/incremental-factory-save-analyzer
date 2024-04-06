@@ -2,15 +2,21 @@ package incremental.wiki
 
 import incremental.WikiFormatter
 import incremental.model.*
+import incremental.model.Item.{
+  blueScience,
+  greenScience,
+  purpleScience,
+  redScience,
+  whiteScience,
+  yellowScience
+}
 
 object WikiTables {
 
-  def defaultFormatter = WikiFormatter(
-    iconSize = 24,
-    showItemIcons = true,
-    showBuildingIcons = true,
-    showItemText = true
-  )
+  def defaultFormatter = WikiFormatter()
+  def iconOnlyFormatter = WikiFormatter(showItemText = false)
+  def textOnlyFormatter =
+    WikiFormatter(showItemIcons = false, showBuildingIcons = false)
 
   def mkTable(
       headers: Seq[String],
@@ -92,15 +98,37 @@ object WikiTables {
     rows.mkString(preamble, "", endTable)
   }
 
+  private def costQty(costs: Iterable[CountedItem], item: Item): String =
+    costs
+      .find(_.item == item)
+      .map(_.qty)
+      .map(textOnlyFormatter.formatNumber)
+      .getOrElse("")
+
   def simpleResearchesTable: String =
     mkTable(
-      Seq("Name", "Unlocks"),
-      Seq("left", "left"),
+      Seq(
+        "Name",
+        iconOnlyFormatter.formatItem(redScience),
+        iconOnlyFormatter.formatItem(greenScience),
+        iconOnlyFormatter.formatItem(blueScience),
+        iconOnlyFormatter.formatItem(purpleScience),
+        iconOnlyFormatter.formatItem(yellowScience),
+        iconOnlyFormatter.formatItem(whiteScience),
+        "Unlocks"
+      ),
+      Seq("left", "right", "right", "right", "right", "right", "right", "left"),
       SimpleResearch.ordered
         .map(x =>
           Seq(
             s"[[${x.wikiTitle}]]",
-            defaultFormatter.formatUnlocks(x.unlocks)
+            costQty(x.cost, redScience),
+            costQty(x.cost, greenScience),
+            costQty(x.cost, blueScience),
+            costQty(x.cost, purpleScience),
+            costQty(x.cost, yellowScience),
+            costQty(x.cost, whiteScience),
+            textOnlyFormatter.formatUnlocks(x.unlocks)
           )
         )
     )

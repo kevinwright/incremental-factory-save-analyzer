@@ -12,7 +12,7 @@ import ItemCategory.*
 
 object Item {
   def ordered: Seq[Item] =
-    Item.values
+    Item.values.toSeq
       .sortBy(_.ordinal())
       .filterNot(_ == Item.nullItem)
 
