@@ -28,6 +28,7 @@ scalacOptions ++= Seq(
   "utf8",
   "-feature",
   "-deprecation",
+  "-explain",
   "-Werror"
 )
 

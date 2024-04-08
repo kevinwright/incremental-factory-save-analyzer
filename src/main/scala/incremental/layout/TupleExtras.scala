@@ -19,16 +19,11 @@ type HomogenousAux[H, T <: Tuple] = T match {
 
 type Homogenous[H] = [T <: Tuple] =>> HomogenousAux[H, T]
 
-
-
 ///////////////
 // Extensions
 
-
-
 extension [Tup <: Tuple](tup: Tup) {
   inline def toFixedList[
-    N <: Tuple.Size[Tup] & Singleton
+      N <: Tuple.Size[Tup] & Singleton
   ]: FixedList[N, Tuple.Union[Tup]] = FixedList.of[Tup, N](tup)
 }
-
