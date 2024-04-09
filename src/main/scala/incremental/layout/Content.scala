@@ -1,7 +1,7 @@
 package incremental.layout
 
 sealed trait Content:
-  def format(customFormatFn: CustomContent => String): String
+  def format(customFormatFn: CustomContent => String = x => x.toString): String
 
 sealed trait SimpleContent extends Content:
   def format(customFormatFn: CustomContent => String): String = stringValue

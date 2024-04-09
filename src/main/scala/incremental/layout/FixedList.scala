@@ -16,8 +16,8 @@ class FixedList[N <: Int, +A] private (
   def flatMap[NB <: Int, B](fn: A => FixedList[NB, B]): FixedList[N * NB, B] =
     new FixedList[N * NB, B](inner.flatMap(x => fn(x).inner))
 
-  def zip[B](other: FixedList[N, B]): FixedList[N, (A,B)] =
-    new FixedList[N, (A,B)](inner.zip(other))
+  def zip[B](other: FixedList[N, B]): FixedList[N, (A, B)] =
+    new FixedList[N, (A, B)](inner.zip(other))
 }
 
 object FixedList {
@@ -49,4 +49,11 @@ object FixedList {
   }
 
   def empty: FixedList[0, Nothing] = new FixedList[0, Nothing](Nil)
+
+  class Fill[N <: Int] {
+    def apply[T](t: T)(using N: ValueOf[N]): FixedList[N, T] =
+      new FixedList[N, T](List.fill(N.value)(t))
+  }
+
+  def fill[N <: Int & Singleton]: Fill[N] = new Fill[N]
 }
